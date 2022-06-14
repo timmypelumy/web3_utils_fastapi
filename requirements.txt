@@ -14,7 +14,7 @@ cffi==1.15.0
 charset-normalizer==2.0.12
 click==8.1.3
 colorama==0.4.4
-cytoolz @ file:///C:/Users/thejoker/Desktop/beepo-server/cytoolz-0.11.2-cp39-cp39-win_amd64.whl
+cytoolz
 dnspython==2.2.1
 ecdsa==0.17.0
 email-validator==1.2.1
@@ -38,7 +38,7 @@ ipfshttpclient==0.8.0a2
 itsdangerous==2.1.2
 Jinja2==3.1.2
 jsonschema==4.6.0
-lru-dict @ file:///C:/Users/thejoker/Desktop/beepo-server/lru_dict-1.1.7-cp39-cp39-win_amd64.whl
+lru-dict
 MarkupSafe==2.1.1
 motor==3.0.0
 multiaddr==0.0.9
