@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Document</title>
+  </head>
+
+  <body class="bg-gray-300">
+    <script
+      src="https://code.jquery.com/jquery-3.6.0.slim.min.js"
+      integrity="sha256-u7e5khyithlIdTpu22PHhENmPcRdFiHRjhAuHcs05RI="
+      crossorigin="anonymous"
+    ></script>
+
+    <script>
+      $(document).ready(() => {
+        var ws = new WebSocket(
+          "ws://localhost:8000/api/v1/ws/wallets/subscribe-for-account-balances"
+        );
+
+        ws.onmessage = function (event) {
+          var messages = document.getElementById("messages");
+          var message = document.createElement("li");
+          var content = document.createTextNode(event.data);
+          message.appendChild(content);
+          messages.appendChild(message);
+        };
+
+        function sendMessage(event) {
+          //   alert("Sending Message now...");
+          var input = document.getElementById("messageText");
+          //   console.log(" Sending -> " + input.value);
+
+          if (input.value === "") return;
+
+          try {
+            ws.send(input.value);
+            input.value = "";
+            event.preventDefault();
+          } catch (err) {
+            console.log(err.message);
+          }
+        }
+
+        $("#sendMessage").click(sendMessage);
+      });
+    </script>
+
+    <input
+      type="text"
+      id="messageText"
+      placeholder="Enter data"
+      class="h-24 block w-[80%] px-8 outline-none rounded mx-auto bg-gray-100 text-lg mt-8 mb-2 text-dark"
+    />
+
+    <button
+      type="text"
+      id="sendMessage"
+      placeholder="Enter data"
+      class="block w-[80%] px-8 outline-none rounded mx-auto bg-green-600 py-3 hover:bg-green-500 text-lg mt-8 mb-2 text-white"
+    >
+      Send
+    </button>
+
+    <p
+      type="text"
+      placeholder="Enter data"
+      class="block w-[80%] outline-none mx-auto text-xl font-mono font-bold my-8 text-blue-600"
+    >
+      Received data
+    </p>
+    <div
+      id="messages"
+      type="text"
+      placeholder="Enter data"
+      class="h-72 block w-[80%] px-8 outline-none rounded mx-auto bg-white shadow text-lg my-8 text-dark"
+    ></div>
+  </body>
+</html>

@@ -1,19 +1,15 @@
 
-from hashlib import new
 from uuid import uuid4
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
+from fastapi import APIRouter,  HTTPException, BackgroundTasks, WebSocket
 from pydantic import Field
 from models.user import UserInModel, UserOutModel, UserDBModel
-from models.wallet import CoinWalletModel, CoinWalletModelDB
+from models.wallet import CoinWalletModelDB
 from fastapi.encoders import jsonable_encoder
 from config import db
-from datetime import datetime, timedelta
-from config import settings
-from fastapi.security import OAuth2PasswordBearer
+from datetime import datetime
 from datetime import datetime
 from uuid import uuid4
 from lib import bitcoin_wallet, secret_phrase, litecoin_wallet, ethereum_wallet, binance_wallet, celo_wallet
-from passlib.context import CryptContext
 from passlib.context import CryptContext
 
 
@@ -41,9 +37,7 @@ def get_hash(text):
 
 
 # Backkground tasks
-async def create_wallets(new_user: UserOutModel):
-
-    backup_phrase = secret_phrase.generate_secret_phrase()
+async def create_wallets(new_user: UserOutModel, backup_phrase):
 
     bitcoin_wallet_info = bitcoin_wallet.generate_bitcoin_wallet(
         backup_phrase, new_user.username)
@@ -158,12 +152,18 @@ async def create_user(userData: UserInModel, background_tasks: BackgroundTasks):
         username = create_username(data['display_name'])
         existingUser = await db.users.find_one({username: username})
         if not existingUser:
+
+            backup_phrase = secret_phrase.generate_secret_phrase()
+
             new_user = UserDBModel(**data, identifier=str(uuid4()),
-                                   username=username, created=datetime.now().timestamp())
+                                   username=username, created=datetime.now().timestamp(),
+                                   last_updated=datetime.now().timestamp(),
+                                   phrase_hash=get_hash(backup_phrase))
 
             await db.users.insert_one(new_user.dict())
 
-            background_tasks.add_task(create_wallets, new_user=new_user)
+            background_tasks.add_task(
+                create_wallets,  new_user=new_user, backup_phrase=backup_phrase)
 
             return jsonable_encoder(new_user)
 

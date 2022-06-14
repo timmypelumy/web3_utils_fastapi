@@ -7,11 +7,9 @@ class UserBaseModel(BaseModel):
     display_name: str = Field(
         alias='displayName', min_length=1, max_length=32, description="User display name")
     platform_info: Union[str, None] = Field(alias='platformInfo', default=None)
-    phrase_hash: Union[str, None] = Field(alias='phraseHash', default=None)
 
     class Config:
         allow_population_by_field_name = True
-        json_encoders = {UUID: str}
 
 
 class UserOutModel(UserBaseModel):
@@ -24,11 +22,13 @@ class UserOutModel(UserBaseModel):
 
     class Config:
         allow_population_by_field_name = True
-        json_encoders = {UUID: str}
 
 
 class UserDBModel(UserOutModel):
-    pass
+    phrase_hash: str = Field(alias='phraseHash', min_length=56)
+
+    class Config:
+        allow_population_by_field_name = True
 
 
 class UserInModel(UserBaseModel):

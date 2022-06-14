@@ -1,6 +1,6 @@
 from pydantic import BaseSettings
 import motor.motor_asyncio
-from typing import Union
+from typing import Union, Dict
 
 
 class AppSettings(BaseSettings):
@@ -11,6 +11,29 @@ class AppSettings(BaseSettings):
     access_token_expiration_in_minutes: int = 60
     client_url: str = 'http://localhost:3000'
     heroku_app_url: Union[str, None] = None
+    chain_nodes: Dict[int, Dict[str, str]] = {
+        42220: {
+            'http': 'https://rpc.ankr.com/celo',
+            'ws':  'wss://forno.celo.org/ws',
+        },
+
+        1: {
+            'http': 'https://eth-mainnet.public.blastapi.io',
+            'ws': ''
+        },
+
+        56: {
+            'http': 'https://bsc-dataseed1.binance.org',
+            'ws': ''
+
+        },
+
+        5000: {
+            'http': 'http://127.0.0.1:5000',
+            'ws': ''
+        }
+
+    }
 
 
 settings = AppSettings()

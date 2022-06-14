@@ -1,6 +1,14 @@
 from pydantic import BaseModel, Field, AnyUrl
-from typing import  Union
+from typing import Union
 from config import db
+
+
+class CoinBalanceSubscriptionModel(BaseModel):
+    network_id: int = Field(alias='networkId')
+    client_id:  str = Field(alias='clientId')
+
+    class Config:
+        allow_population_by_field_name = True
 
 
 class CoinWalletModel(BaseModel):

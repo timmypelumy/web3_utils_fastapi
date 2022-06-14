@@ -1,5 +1,6 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI
 from routers import users
+from routers.ws.index import router as websocket_router
 # from routers.user import authenticate_user, create_access_token
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.exceptions import HTTPException
@@ -8,8 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from config import settings
 
 
-
-app  = FastAPI()
+app = FastAPI()
 
 origins = [
     settings.client_url,
@@ -18,46 +18,45 @@ origins = [
 ]
 
 
-
-
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
-    allow_credentials= False,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 
+app.include_router(
+    router=users.router,
+    prefix='/api/v1',
+    tags=['Users endpoints'],
+
+)
+
+
+app.include_router(
+    router=websocket_router,
+    prefix='/api/v1/ws',
+    tags=['Websocket endpoints']
+)
+
 # ---------------------
-# Start Up and Shutdown events 
+# Start Up and Shutdown events
 # ---------------------
+
 
 @app.on_event('startup')
 def startup_event():
     print("\nApplication starting up...")
 
-   
-    
-
 
 @app.on_event('shutdown')
 def shutdown_event():
     print("\nApplication shutting down...")
-    
 
 
-
-app.include_router(
-   router= users.router,
-    prefix='/api/v1',
-    tags = [ 'API version 1'],
-
-)
-
-
-# ? lOGIN URL 
+# ? lOGIN URL
 
 
 # @app.post("/api/v1/login", response_model= Token )
@@ -76,6 +75,6 @@ app.include_router(
 @app.get('/ping')
 async def ping():
     return {
-        "message" : "It worked!",
-        "allowed_origins" : origins
+        "message": "It worked!",
+        "allowed_origins": origins
     }
