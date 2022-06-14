@@ -19,7 +19,7 @@ dnspython==2.2.1
 ecdsa==0.17.0
 email-validator==1.2.1
 eth-abi==2.1.1
-eth-account==0.5.8
+eth-account==0.6.1
 eth-hash==0.3.2
 eth-keyfile==0.5.1
 eth-keys==0.3.4
