@@ -2,4 +2,6 @@
 __pycache__
 venv
 env
+websocket.html
+*websocket.html*
 *__pycache__

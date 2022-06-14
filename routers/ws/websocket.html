@@ -17,19 +17,36 @@
 
     <script>
       $(document).ready(() => {
-        var ws = new WebSocket(
-          "ws://localhost:8000/api/v1/ws/wallets/subscribe-for-account-balances"
-        );
+        let endpoint = "";
+        ws = null;
 
-        ws.onmessage = function (event) {
-          var messages = document.getElementById("messages");
-          var message = document.createElement("li");
-          var content = document.createTextNode(event.data);
-          message.appendChild(content);
-          messages.appendChild(message);
-        };
+        $("#setEndpoint").click(() => {
+          url = document.getElementById("urlInput").value;
+          if (!url) return;
+
+          endpoint = url;
+
+          alert("Websocket endpoint : " + endpoint);
+
+          ws = new WebSocket(endpoint);
+
+          ws.onmessage = function (event) {
+            var messages = document.getElementById("messages");
+            var message = document.createElement("li");
+            var content = document.createTextNode(event.data);
+            message.appendChild(content);
+            messages.appendChild(message);
+          };
+        });
 
         function sendMessage(event) {
+          if (!endpoint) {
+            alert("Enter websocket url!");
+            return;
+          }
+
+          if (!ws) return;
+
           //   alert("Sending Message now...");
           var input = document.getElementById("messageText");
           //   console.log(" Sending -> " + input.value);
@@ -51,6 +68,21 @@
 
     <input
       type="text"
+      id="urlInput"
+      placeholder="Enter websocket endpoint url"
+      class="h-8 block w-[80%] px-8 outline-none rounded mx-auto bg-gray-100 text-sm placeholder:texts-m caret:text-sm mt-8 mb-2 text-dark"
+    />
+
+    <button
+      type="text"
+      id="setEndpoint"
+      class="block w-[80%] px-8 outline-none rounded mx-auto bg-blue-600 py-1 hover:bg-blue-500 text-lg mt-8 mb-2 text-white"
+    >
+      Set endpoint
+    </button>
+
+    <input
+      type="text"
       id="messageText"
       placeholder="Enter data"
       class="h-24 block w-[80%] px-8 outline-none rounded mx-auto bg-gray-100 text-lg mt-8 mb-2 text-dark"
@@ -59,7 +91,6 @@
     <button
       type="text"
       id="sendMessage"
-      placeholder="Enter data"
       class="block w-[80%] px-8 outline-none rounded mx-auto bg-green-600 py-3 hover:bg-green-500 text-lg mt-8 mb-2 text-white"
     >
       Send
