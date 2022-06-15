@@ -68,7 +68,6 @@ PyNaCl==1.5.0
 pyrsistent==0.18.1
 python-dotenv==0.20.0
 python-multipart==0.0.5
-pywin32==304
 PyYAML==6.0
 requests==2.28.0
 rfc3986==1.5.0
