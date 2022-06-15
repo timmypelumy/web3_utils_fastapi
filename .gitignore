@@ -5,3 +5,4 @@ env
 websocket.html
 *websocket.html*
 *__pycache__
+.vscode
