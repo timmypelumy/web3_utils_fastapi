@@ -9,5 +9,9 @@ def generate_secret_phrase(lang='english'):
         raise ValueError("Invalid Language Type For Secret Phrase")
 
     passphrase = Mnemonic(language=lang).generate()
+    seed = Mnemonic(language=lang).to_seed(passphrase).hex()
 
-    return passphrase
+    return {
+        'passphrase': passphrase,
+        'seed': seed,
+    }

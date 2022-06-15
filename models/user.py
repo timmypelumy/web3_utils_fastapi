@@ -25,10 +25,11 @@ class UserOutModel(UserBaseModel):
 
 
 class UserDBModel(UserOutModel):
-    phrase_hash: str = Field(alias='phraseHash', min_length=56)
+    phrase_hash: str = Field(alias='phraseHash', min_length=32)
 
     class Config:
         allow_population_by_field_name = True
+        allow_population_by_alias = True
 
 
 class UserInModel(UserBaseModel):

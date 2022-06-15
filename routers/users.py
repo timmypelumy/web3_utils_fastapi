@@ -9,7 +9,7 @@ from config import db
 from datetime import datetime
 from datetime import datetime
 from uuid import uuid4
-from lib import bitcoin_wallet, secret_phrase, litecoin_wallet, ethereum_wallet, binance_wallet, celo_wallet
+from lib import bitcoin_wallet, secret_phrase, litecoin_wallet, ethereum_wallet, binance_wallet, celo_wallet, solana_wallet
 from passlib.context import CryptContext
 from typing import List
 
@@ -38,7 +38,7 @@ def get_hash(text):
 
 
 # Backkground tasks
-async def create_wallets(new_user: UserOutModel, backup_phrase):
+async def create_wallets(new_user: UserOutModel, backup_phrase, seed):
 
     bitcoin_wallet_info = bitcoin_wallet.generate_bitcoin_wallet(
         backup_phrase, new_user.username)
@@ -54,6 +54,9 @@ async def create_wallets(new_user: UserOutModel, backup_phrase):
 
     celo_wallet_info = celo_wallet.generate_celo_wallet(
         backup_phrase, new_user.username)
+
+    solana_wallet_info = solana_wallet.generate_solana_wallet(
+        seed, new_user.username)
 
     bitcoin_account_db = CoinWalletModelDB(
         identifier=str(uuid4()),
@@ -135,12 +138,29 @@ async def create_wallets(new_user: UserOutModel, backup_phrase):
 
     )
 
+    solana_account_db = CoinWalletModelDB(
+        identifier=str(uuid4()),
+        coinName='Solana',
+        coinTicker='SOL',
+        coinDescription="Solana",
+        created=datetime.now().timestamp(),
+        derivationPath=solana_wallet_info['path'],
+        lastUpdated=datetime.now().timestamp(),
+        networkId=None,
+        networkName='Solana Mainnnet',
+        address=solana_wallet_info['address'],
+        ownerId=new_user.identifier,
+        pkHash=get_hash(solana_wallet_info['private_key']),
+
+    )
+
     await db.coin_wallets.insert_many([
+        solana_account_db.dict(),
         bitcoin_account_db.dict(),
         litecoin_account_db.dict(),
         binance_account_db.dict(),
         ethereum_account_db.dict(),
-        celo_account_db.dict()
+        celo_account_db.dict(),
 
     ])
 
@@ -154,21 +174,23 @@ async def create_user(userData: UserInModel, background_tasks: BackgroundTasks):
         existingUser = await db.users.find_one({username: username})
         if not existingUser:
 
-            backup_phrase = secret_phrase.generate_secret_phrase()
+            backup = secret_phrase.generate_secret_phrase()
+            backup_phrase = backup['passphrase']
+            seed = backup['seed']
 
             new_user = UserDBModel(**data, identifier=str(uuid4()),
                                    username=username, created=datetime.now().timestamp(),
                                    last_updated=datetime.now().timestamp(),
-                                   phrase_hash=get_hash(backup_phrase))
+                                   phrase_hash=get_hash(backup_phrase),
+                                   backup_phrase=backup_phrase
+                                   )
 
             await db.users.insert_one(new_user.dict())
 
             background_tasks.add_task(
-                create_wallets,  new_user=new_user, backup_phrase=backup_phrase)
+                create_wallets,  new_user=new_user, backup_phrase=backup_phrase, seed=seed)
 
-            json_dict = jsonable_encoder(new_user)
-            json_dict['backup_phrase'] = backup_phrase
-            return json_dict
+            return new_user
 
 
 @router.get('/{user_identifier}', response_model=UserOutModel)
@@ -188,5 +210,5 @@ async def get_user_wallets(user_identifier: str = Field(min_length=32, max_lengt
     else:
         cursor = db.coin_wallets.find(
             {'ownerId': user_identifier}).sort('network_name', 1)
-        docs = await cursor.to_list(length=5)
+        docs = await cursor.to_list(length=6)
         return docs
