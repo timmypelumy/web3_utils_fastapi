@@ -145,7 +145,7 @@ async def create_wallets(new_user: UserOutModel, backup_phrase):
     ])
 
 
-@router.post('', response_model=UserOutModel, response_model_exclude={'phrase_hash'})
+@router.post('', response_model=UserOutModel)
 async def create_user(userData: UserInModel, background_tasks: BackgroundTasks):
     data = userData.dict()
 
@@ -166,7 +166,9 @@ async def create_user(userData: UserInModel, background_tasks: BackgroundTasks):
             background_tasks.add_task(
                 create_wallets,  new_user=new_user, backup_phrase=backup_phrase)
 
-            return jsonable_encoder(new_user)
+            json_dict = jsonable_encoder(new_user)
+            json_dict['backup_phrase'] = backup_phrase
+            return json_dict
 
 
 @router.get('/{user_identifier}', response_model=UserOutModel)

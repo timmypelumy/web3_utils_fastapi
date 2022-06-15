@@ -17,7 +17,8 @@ class CoinWalletModel(BaseModel):
     coin_ticker: str = Field(alias='coinTicker', min_length=2)
     coin_description: Union[str, None] = Field(
         alias='coinDescription', default=None)
-    coin_logo_url: Union[None, AnyUrl] = None
+    coin_logo_url: Union[None, AnyUrl] = Field(
+        alias='coinLogoUrl', min_length=3)
     network_name: str = Field(alias='networkName', min_length=3)
     derivation_path:  Union[str, None] = Field(
         alias='derivationPath', min_length=3)

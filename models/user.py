@@ -19,6 +19,7 @@ class UserOutModel(UserBaseModel):
     created: float
     is_active: bool = Field(alias='isActive', default=True)
     last_updated: Union[float, None] = Field(alias='lastUpdated', default=None)
+    backup_phrase: Union[str, None] = Field(alias='backupPhrase', default=None)
 
     class Config:
         allow_population_by_field_name = True
