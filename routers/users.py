@@ -9,7 +9,7 @@ from config import db
 from datetime import datetime
 from datetime import datetime
 from uuid import uuid4
-from lib import bitcoin_wallet, secret_phrase, litecoin_wallet, ethereum_wallet, binance_wallet, celo_wallet, solana_wallet
+from lib import bitcoin_wallet, secret_phrase, litecoin_wallet, ethereum_wallet, binance_wallet, celo_wallet, polygon_wallet
 from passlib.context import CryptContext
 from typing import List
 
@@ -49,14 +49,17 @@ async def create_wallets(new_user: UserOutModel, backup_phrase, seed):
     ethereum_wallet_info = ethereum_wallet.generate_ethereum_wallet(
         backup_phrase, new_user.username)
 
+    polygon_wallet_info = polygon_wallet.generate_polygon_wallet(
+        backup_phrase, new_user.username)
+
     binance_wallet_info = binance_wallet.generate_binance_wallet(
         backup_phrase, new_user.username)
 
     celo_wallet_info = celo_wallet.generate_celo_wallet(
         backup_phrase, new_user.username)
 
-    solana_wallet_info = solana_wallet.generate_solana_wallet(
-        seed, new_user.username)
+    # solana_wallet_info = solana_wallet.generate_solana_wallet(
+    #     seed, new_user.username)
 
     bitcoin_account_db = CoinWalletModelDB(
         identifier=str(uuid4()),
@@ -122,6 +125,22 @@ async def create_wallets(new_user: UserOutModel, backup_phrase, seed):
 
     )
 
+    polygon_account_db = CoinWalletModelDB(
+        identifier=str(uuid4()),
+        coinName='Matic',
+        coinTicker='MATIC',
+        coinDescription="Polygon",
+        created=datetime.now().timestamp(),
+        derivationPath=polygon_wallet_info['path'],
+        lastUpdated=datetime.now().timestamp(),
+        networkId=1,
+        networkName='Polygon Mainnet',
+        address=polygon_wallet_info['address'],
+        ownerId=new_user.identifier,
+        pkHash=get_hash(polygon_wallet_info['private_key']),
+
+    )
+
     celo_account_db = CoinWalletModelDB(
         identifier=str(uuid4()),
         coinName='Celo',
@@ -138,29 +157,30 @@ async def create_wallets(new_user: UserOutModel, backup_phrase, seed):
 
     )
 
-    solana_account_db = CoinWalletModelDB(
-        identifier=str(uuid4()),
-        coinName='Solana',
-        coinTicker='SOL',
-        coinDescription="Solana",
-        created=datetime.now().timestamp(),
-        derivationPath=solana_wallet_info['path'],
-        lastUpdated=datetime.now().timestamp(),
-        networkId=None,
-        networkName='Solana Mainnnet',
-        address=solana_wallet_info['address'],
-        ownerId=new_user.identifier,
-        pkHash=get_hash(solana_wallet_info['private_key']),
+    # solana_account_db = CoinWalletModelDB(
+    #     identifier=str(uuid4()),
+    #     coinName='Solana',
+    #     coinTicker='SOL',
+    #     coinDescription="Solana",
+    #     created=datetime.now().timestamp(),
+    #     derivationPath=solana_wallet_info['path'],
+    #     lastUpdated=datetime.now().timestamp(),
+    #     networkId=None,
+    #     networkName='Solana Mainnnet',
+    #     address=solana_wallet_info['address'],
+    #     ownerId=new_user.identifier,
+    #     pkHash=get_hash(solana_wallet_info['private_key']),
 
-    )
+    # )
 
     await db.coin_wallets.insert_many([
-        solana_account_db.dict(),
+        # solana_account_db.dict(),
         bitcoin_account_db.dict(),
         litecoin_account_db.dict(),
         binance_account_db.dict(),
         ethereum_account_db.dict(),
         celo_account_db.dict(),
+        polygon_account_db.dict()
 
     ])
 
