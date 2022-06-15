@@ -91,3 +91,4 @@ watchgod==0.8.2
 web3
 websockets
 yarl==1.7.2
+gunicorn
