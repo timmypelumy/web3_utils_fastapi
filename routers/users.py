@@ -3,7 +3,7 @@ from uuid import uuid4
 from fastapi import APIRouter,  HTTPException, BackgroundTasks, WebSocket
 from pydantic import Field
 from models.user import UserInModel, UserOutModel, UserDBModel
-from models.wallet import CoinWalletModelDB
+from models.wallet import CoinWalletModel, CoinWalletModelDB
 from fastapi.encoders import jsonable_encoder
 from config import db
 from datetime import datetime
@@ -11,6 +11,7 @@ from datetime import datetime
 from uuid import uuid4
 from lib import bitcoin_wallet, secret_phrase, litecoin_wallet, ethereum_wallet, binance_wallet, celo_wallet
 from passlib.context import CryptContext
+from typing import List
 
 
 router = APIRouter(
@@ -168,10 +169,22 @@ async def create_user(userData: UserInModel, background_tasks: BackgroundTasks):
             return jsonable_encoder(new_user)
 
 
-@router.get('/{username}', response_model=UserOutModel)
-async def get_user_by_username(username: str = Field(min_length=3, max_length=48)):
-    user = await db.users.find_one({'username': username})
+@router.get('/{user_identifier}', response_model=UserOutModel)
+async def get_user_by_user_identifier(user_identifier: str = Field(min_length=32, max_length=48)):
+    user = await db.users.find_one({'identifier': user_identifier})
     if not user:
         raise HTTPException(status_code=404, detail='User does not exist.')
     else:
         return user
+
+
+@router.get('/{user_identifier}/wallets', response_model=List[CoinWalletModelDB])
+async def get_user_wallets(user_identifier: str = Field(min_length=32, max_length=48)):
+    user = await db.users.find_one({'identifier': user_identifier})
+    if not user:
+        raise HTTPException(status_code=404, detail='user does not exist.')
+    else:
+        cursor = db.coin_wallets.find(
+            {'ownerId': user_identifier}).sort('network_name', 1)
+        docs = await cursor.to_list(length=5)
+        return docs

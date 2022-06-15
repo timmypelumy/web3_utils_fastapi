@@ -21,8 +21,6 @@ class ConnnectionManager:
             42220: Web3.HTTPProvider(settings.chain_nodes[42220]['http']),
         }
 
-        self.get_eth_balances()
-
     async def get_ganache_balances(self):
         room_id = 'LIVE_BALANCES_{0}'.format(5000)
         room = self.get_room(room_id)
@@ -155,6 +153,7 @@ async def get_live_balances(websocket: WebSocket):
 
     try:
         while True:
+
             data = await websocket.receive_json()
             network_id = data['network_id']
             room_id = 'LIVE_BALANCES_{0}'.format(network_id)
