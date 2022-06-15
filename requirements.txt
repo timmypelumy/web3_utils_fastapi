@@ -88,6 +88,6 @@ uvicorn==0.17.6
 varint==1.0.2
 watchgod==0.8.2
 web3==5.29.2
-websockets==10.3
-yarl==1.7.2
+websockets
 gunicorn
+yarl==1.7.2
