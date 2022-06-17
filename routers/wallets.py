@@ -18,26 +18,10 @@ router = APIRouter(
 )
 
 
-@router.post('/get-balance', response_model=GetBalanceOutputModel)
+@router.post('/get-balance', response_model=GetBalanceOutputModel, description='Fetch current balance of a wallet address, either the network ID or network name muts be supplied. Network name is required for litecoin and  bitcoin while other networks such as celo and ethereum require the network ID to be supplied')
 async def get_wallet_balance(body: GetBalanceInputModel = Body()):
     network_id = body.network_id
     address = body.address
-    network_name = body.network_name
-
-    if (not network_id) and (network_name != 'bitcoin' and network_name != 'litecoin'):
-        raise ValidationError(['Network name is required when network ID is not applicable',
-                              "Network must be either 'bitcoin' or 'litecoin' "], model=GetBalanceInputModel)
-
-    if network_id:
-        if(ALLOWED_NETWORK_IDS.index(network_id) == -1):
-            raise ValidationError(['Invalid network ID',
-                                   "Allowed network IDs are 1,56,137 and 4220' "], model=GetBalanceInputModel)
-
-        is_valid_address = ethereum_wallet.is_valid_address(address)
-
-        if not is_valid_address:
-            raise ValidationError(['Invalid address for network with ID {0}'.format(
-                network_id)], model=GetBalanceInputModel)
 
     balance = -1
 
@@ -81,6 +65,8 @@ async def get_wallet_balance(body: GetBalanceInputModel = Body()):
             'networkId': network_id,
             'address': address
         }
+
+    print(balance, network_id)
 
 
 class ConnnectionManager:

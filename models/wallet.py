@@ -1,22 +1,54 @@
-from pydantic import BaseModel, Field, AnyUrl
+from pydantic import BaseModel, Field, AnyUrl, validator, root_validator
 from typing import Union
 from config import db
+from web3 import Web3
+
+ALLOWED_NETWORK_IDS = {1, 56, 137, 42220}
+ALLOWED_NETWORK_NAMES = {'binance', 'ethereum',
+                         'celo', 'litecoin', 'bitcoin', 'polygon'}
+
+
+def is_valid_address(address: str):
+    return Web3().isChecksumAddress(address)
 
 
 class GetBalanceInputModel(BaseModel):
-    address: str = Field(min_length=24)
     network_id: Union[int, None] = Field(alias='networkId', default=None, gt=0)
     network_name: str = Field(alias='networkName', default=None)
+    address: str = Field(min_length=24)
     denomination: Union[str, None] = Field(default=None)
+
+    @validator('address', always=True)
+    def is_valid_address(cls, v, values):
+        if values.get('network_id', None) and not is_valid_address(v):
+            raise ValueError('Invalid Wallet Address')
+        return v
+
+    @validator('network_id',  always=True)
+    def is_valid_network_id(cls, v):
+
+        if v and not ALLOWED_NETWORK_IDS.issuperset([v, ]):
+            raise ValueError("Invalid Network ID")
+        return v
+
+    @validator('network_name',  always=True)
+    def is_valid_network_name(cls, v: str):
+
+        if v and not ALLOWED_NETWORK_NAMES.issuperset([v.lower(), ]):
+            raise ValueError("Invalid Network Name")
+        return v
+
+    @root_validator()
+    def either_name_or_network_id(cls,  values):
+        if not values.get('network_name', None) and not values.get('network_id', None):
+            raise ValueError("Either Network ID or Network Name is required")
+        return values
 
     class Config:
         allow_population_by_field_name = True
 
 
-class GetBalanceOutputModel(BaseModel):
-    address: str = Field(min_length=24)
-    network_id: Union[int, None] = Field(alias='networkId', default=None, gt=0)
-    network_name: str = Field(alias='networkName', default=None)
+class GetBalanceOutputModel(GetBalanceInputModel):
     balance: float = Field(ge=0)
 
     class Config:
