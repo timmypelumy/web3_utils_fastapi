@@ -28,6 +28,11 @@ class AppSettings(BaseSettings):
 
         },
 
+        137: {
+            'http': 'https://polygon-rpc.com',
+            'ws': ''
+        },
+
         5000: {
             'http': 'http://127.0.0.1:5000',
             'ws': ''

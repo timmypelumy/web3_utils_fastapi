@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from routers import users
-from routers.ws.index import router as websocket_router
+from routers import wallets
 # from routers.user import authenticate_user, create_access_token
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.exceptions import HTTPException
@@ -36,9 +36,9 @@ app.include_router(
 
 
 app.include_router(
-    router=websocket_router,
-    prefix='/api/v1/ws',
-    tags=['Websocket endpoints']
+    router=wallets.router,
+    prefix='/api/v1',
+    tags=['Wallets endpoints']
 )
 
 # ---------------------

@@ -16,7 +16,6 @@ from typing import List
 
 router = APIRouter(
     prefix='/users',
-    tags=['users'],
     responses={
         404: {"description": "User does not exist"}
     }

@@ -3,8 +3,28 @@ from typing import Union
 from config import db
 
 
+class GetBalanceInputModel(BaseModel):
+    address: str = Field(min_length=24)
+    network_id: Union[int, None] = Field(alias='networkId', default=None, gt=0)
+    network_name: str = Field(alias='networkName', default=None)
+    denomination: Union[str, None] = Field(default=None)
+
+    class Config:
+        allow_population_by_field_name = True
+
+
+class GetBalanceOutputModel(BaseModel):
+    address: str = Field(min_length=24)
+    network_id: Union[int, None] = Field(alias='networkId', default=None, gt=0)
+    network_name: str = Field(alias='networkName', default=None)
+    balance: float = Field(ge=0)
+
+    class Config:
+        allow_population_by_field_name = True
+
+
 class CoinBalanceSubscriptionModel(BaseModel):
-    network_id: int = Field(alias='networkId')
+    network_id: int = Field(alias='networkId', gt=0)
     client_id:  str = Field(alias='clientId')
 
     class Config:

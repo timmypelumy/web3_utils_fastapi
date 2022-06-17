@@ -1,13 +1,86 @@
 from typing import Any, Dict, List
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Body
+from pydantic import ValidationError
 from config import settings
 from web3 import Web3
 from time import sleep
+from models.wallet import GetBalanceInputModel, GetBalanceOutputModel
+from lib import binance_wallet, celo_wallet, polygon_wallet, ethereum_wallet
+
+ALLOWED_NETWORK_IDS = [1, 56, 137, 42220]
 
 
 router = APIRouter(
-    prefix='',
+    prefix='/wallets',
+    responses={
+        404: {"description": "Resource does not exist"}
+    }
 )
+
+
+@router.post('/get-balance', response_model=GetBalanceOutputModel)
+async def get_wallet_balance(body: GetBalanceInputModel = Body()):
+    network_id = body.network_id
+    address = body.address
+    network_name = body.network_name
+
+    if (not network_id) and (network_name != 'bitcoin' and network_name != 'litecoin'):
+        raise ValidationError(['Network name is required when network ID is not applicable',
+                              "Network must be either 'bitcoin' or 'litecoin' "], model=GetBalanceInputModel)
+
+    if network_id:
+        if(ALLOWED_NETWORK_IDS.index(network_id) == -1):
+            raise ValidationError(['Invalid network ID',
+                                   "Allowed network IDs are 1,56,137 and 4220' "], model=GetBalanceInputModel)
+
+        is_valid_address = ethereum_wallet.is_valid_address(address)
+
+        if not is_valid_address:
+            raise ValidationError(['Invalid address for network with ID {0}'.format(
+                network_id)], model=GetBalanceInputModel)
+
+    balance = -1
+
+    if network_id == 1:
+        balance = ethereum_wallet.get_balance(address)
+
+        return {
+            'balance': balance,
+            'networkName': 'Ethereum',
+            'networkId': network_id,
+            'address': address
+        }
+
+    if network_id == 56:
+        balance = binance_wallet.get_balance(address)
+
+        return {
+            'balance': balance,
+            'networkName': 'Binance',
+            'networkId': network_id,
+            'address': address
+        }
+
+    if network_id == 137:
+
+        balance = polygon_wallet.get_balance(address)
+
+        return {
+            'balance': balance,
+            'networkName': 'Polygon',
+            'networkId': network_id,
+            'address': address
+        }
+
+    if network_id == 42220:
+        balance = celo_wallet.get_balance(address)
+
+        return {
+            'balance': balance,
+            'networkName': 'celo',
+            'networkId': network_id,
+            'address': address
+        }
 
 
 class ConnnectionManager:

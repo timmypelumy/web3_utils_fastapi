@@ -1,4 +1,4 @@
-from bitcoinlib.wallets import Wallet, wallet_delete
+from bitcoinlib.wallets import Wallet
 
 
 def generate_bitcoin_wallet(passphrase, username):
