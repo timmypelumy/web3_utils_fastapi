@@ -1,4 +1,4 @@
-from models.conversion import FiatToFiatInputModel, FiatToFiatOutputModel
+from models.conversion import FiatToFiatInputModel, FiatToFiatOutputModel, AllAvailableFiatCurrencyOutputModel
 from fastapi import APIRouter, HTTPException
 from requests import request
 from config import settings
@@ -10,6 +10,28 @@ router = APIRouter(
         404: {"description": "Resource does not exist"}
     }
 )
+
+
+@router.get('/available-currencies-with-symbol',  description="Get all available currencies with their respective symbol", response_model=AllAvailableFiatCurrencyOutputModel)
+def available_currencies_with_symbol():
+    headers = {
+        'apiKey': settings.api_layer_key
+    }
+    url = "https://api.apilayer.com/fixer/symbols"
+
+    response = request("GET", url, headers=headers)
+
+    status_code = response.status_code
+
+    if status_code != 200:
+        raise HTTPException(
+            status_code=500, detail="Unable to process request")
+
+    else:
+        data = response.json()
+        return {
+            "symbols": data["symbols"]
+        }
 
 
 @router.post('/fiat-to-fiat',  description="Convert any valid fiat currency to its equivalent value in any other valid fiat currency.", response_model=FiatToFiatOutputModel)
