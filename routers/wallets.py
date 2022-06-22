@@ -1,6 +1,5 @@
-from typing import Any, Dict, List
+from typing import Dict, List
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Body
-from pydantic import ValidationError
 from config import settings
 from web3 import Web3
 from time import sleep

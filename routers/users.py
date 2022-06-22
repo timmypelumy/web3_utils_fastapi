@@ -1,10 +1,10 @@
 
+import random
 from uuid import uuid4
 from fastapi import APIRouter,  HTTPException, BackgroundTasks, WebSocket
 from pydantic import Field
 from models.user import UserInModel, UserOutModel, UserDBModel
-from models.wallet import CoinWalletModel, CoinWalletModelDB
-from fastapi.encoders import jsonable_encoder
+from models.wallet import CoinWalletModelDB
 from config import db
 from datetime import datetime
 from datetime import datetime
@@ -12,6 +12,8 @@ from uuid import uuid4
 from lib import bitcoin_wallet, secret_phrase, litecoin_wallet, ethereum_wallet, binance_wallet, celo_wallet, polygon_wallet
 from passlib.context import CryptContext
 from typing import List
+from nanoid import generate
+from slugify import slugify
 
 
 router = APIRouter(
@@ -27,9 +29,9 @@ pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
 # Helpers
 
 def create_username(name: str):
-    name = ''.join(name.split(" "))
-    time = ''.join(str(datetime.now().timestamp()).split('.'))
-    return "{0}_{1}".format(name, time)
+    slugified_name = slugify(name,  replacements=[['-', '_']])
+    surfix = generate(size=8)
+    return "{0}_{1}".format(slugified_name, surfix)
 
 
 def get_hash(text):

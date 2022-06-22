@@ -1,6 +1,5 @@
 from fastapi import FastAPI
-from routers import users
-from routers import wallets
+from routers import users, wallets, conversions
 # from routers.user import authenticate_user, create_access_token
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.exceptions import HTTPException
@@ -30,7 +29,7 @@ app.add_middleware(
 app.include_router(
     router=users.router,
     prefix='/api/v1',
-    tags=['Users endpoints'],
+    tags=['Users'],
 
 )
 
@@ -38,7 +37,14 @@ app.include_router(
 app.include_router(
     router=wallets.router,
     prefix='/api/v1',
-    tags=['Wallets endpoints']
+    tags=['Wallets']
+)
+
+
+app.include_router(
+    router=conversions.router,
+    prefix='/api/v1',
+    tags=['Conversions']
 )
 
 # ---------------------
