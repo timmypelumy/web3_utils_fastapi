@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from routers import users, wallets, conversions
+from routers import exchanges, users, wallets
 # from routers.user import authenticate_user, create_access_token
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.exceptions import HTTPException
@@ -42,9 +42,9 @@ app.include_router(
 
 
 app.include_router(
-    router=conversions.router,
+    router=exchanges.router,
     prefix='/api/v1',
-    tags=['Conversions']
+    tags=['Exchange and Conversion']
 )
 
 # ---------------------
