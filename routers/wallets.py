@@ -98,6 +98,8 @@ async def get_wallet_balance(body: GetBalanceInputModel = Body()):
             'denomination': 'satoshi'
         }
 
+    
+
     # print(balance, network_id)
 
 

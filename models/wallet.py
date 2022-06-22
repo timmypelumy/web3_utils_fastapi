@@ -31,7 +31,6 @@ class GetBalanceInputModel(BaseModel):
     network_id: Union[int, None] = Field(alias='networkId', default=None, gt=0)
     network_name: str = Field(alias='networkName', default=None)
     address: str = Field(min_length=24)
-    denomination: Union[str, None] = Field(default=None)
 
     @validator('address', always=True)
     def is_valid_address(cls, v, values):
@@ -70,6 +69,7 @@ class GetBalanceInputModel(BaseModel):
 
 class GetBalanceOutputModel(GetBalanceInputModel):
     balance: float = Field(ge=0)
+    denomination: Union[str, None] = Field(default=None)
 
     class Config:
         allow_population_by_field_name = True
