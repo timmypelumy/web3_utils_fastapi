@@ -1,7 +1,6 @@
 
-import random
 from uuid import uuid4
-from fastapi import APIRouter,  HTTPException, BackgroundTasks, WebSocket
+from fastapi import APIRouter,  HTTPException, BackgroundTasks
 from pydantic import Field
 from models.user import UserInModel, UserOutModel, UserDBModel
 from models.wallet import CoinWalletModelDB

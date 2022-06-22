@@ -93,3 +93,4 @@ gunicorn
 yarl==1.7.2
 nanoid==2.0.0
 python-slugify==6.1.2
+

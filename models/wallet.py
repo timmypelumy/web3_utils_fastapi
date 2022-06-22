@@ -2,7 +2,6 @@ from pydantic import BaseModel, Field, AnyUrl, validator, root_validator
 from typing import Union
 from config import db
 from web3 import Web3
-from lib import bitcoin_wallet, litecoin_wallet
 from bitcoinlib.keys import Address, BKeyError, EncodingError
 
 

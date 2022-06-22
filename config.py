@@ -6,6 +6,7 @@ from typing import Union, Dict
 class AppSettings(BaseSettings):
     app_name: str = "Beepo"
     db_url: str = 'mongodb://localhost:27017'
+    api_layer_key: str = 'PZtaVnhWbgSDoy1ULZWTmomdSa89q74Z'
     secret_key: str = "@#$%^Ygtrdytfyiguo^Ou67798ouyxSD%IU7t65srdtuyiCXYTDFIUGOUC*^DDs57du6yiUSYDU"
     hash_algorithm: str = "HS256"
     access_token_expiration_in_minutes: int = 60

@@ -78,9 +78,8 @@ def shutdown_event():
 #     }
 
 
-@app.get('/ping')
+@app.get('/ping', description='Check API server status', tags=["Check API server status"])
 async def ping():
     return {
-        "message": "It worked!",
-        "allowed_origins": origins
+        "{0}_says".format(settings.app_name): "(v1) to the Moon!"
     }
