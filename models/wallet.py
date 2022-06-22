@@ -2,6 +2,9 @@ from pydantic import BaseModel, Field, AnyUrl, validator, root_validator
 from typing import Union
 from config import db
 from web3 import Web3
+from lib import bitcoin_wallet, litecoin_wallet
+from bitcoinlib.keys import Address, BKeyError, EncodingError
+
 
 ALLOWED_NETWORK_IDS = {1, 56, 137, 42220}
 ALLOWED_NETWORK_NAMES = {'binance', 'ethereum',
@@ -10,6 +13,18 @@ ALLOWED_NETWORK_NAMES = {'binance', 'ethereum',
 
 def is_valid_address(address: str):
     return Web3().isChecksumAddress(address)
+
+
+def is_valid_bitcoin_based_address(address: str, network: str):
+    try:
+        parsed_address = Address.parse(address=address)
+        data = parsed_address.as_dict()
+        # print(data)
+        return data['network'].lower() == network.lower()
+
+    except (BKeyError, EncodingError) as Exception:
+        print(Exception)
+        return False
 
 
 class GetBalanceInputModel(BaseModel):
@@ -21,7 +36,12 @@ class GetBalanceInputModel(BaseModel):
     @validator('address', always=True)
     def is_valid_address(cls, v, values):
         if values.get('network_id', None) and not is_valid_address(v):
-            raise ValueError('Invalid Wallet Address')
+            raise ValueError('Invalid EVM Wallet Address')
+
+        if values.get('network_name', None) and not is_valid_bitcoin_based_address(v, values['network_name']):
+            raise ValueError('Invalid {0} Wallet Address'.format(
+                values["network_name"]))
+
         return v
 
     @validator('network_id',  always=True)

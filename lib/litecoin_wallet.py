@@ -1,4 +1,5 @@
-from bitcoinlib.wallets import Wallet, wallet_delete
+from bitcoinlib.wallets import Wallet
+from bitcoinlib.services.services import Service
 
 
 def generate_litecoin_wallet(passphrase, username):
@@ -24,3 +25,8 @@ def generate_litecoin_wallet(passphrase, username):
     }
 
     return account_info
+
+
+def get_balance(address: str):
+    srv = Service(network='litecoin', max_providers=3, min_providers=1)
+    return srv.getbalance(address)
