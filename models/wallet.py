@@ -26,7 +26,7 @@ def is_valid_bitcoin_based_address(address: str, network: str):
         return False
 
 
-class GetBalanceInputModel(BaseModel):
+class FetchBalanceInputModel(BaseModel):
     network_id: Union[int, None] = Field(alias='networkId', default=None, gt=0)
     network_name: str = Field(alias='networkName', default=None)
     address: str = Field(min_length=24)
@@ -66,7 +66,7 @@ class GetBalanceInputModel(BaseModel):
         allow_population_by_field_name = True
 
 
-class GetBalanceOutputModel(GetBalanceInputModel):
+class FetchBalanceOutputModel(FetchBalanceInputModel):
     balance: float = Field(ge=0)
     denomination: Union[str, None] = Field(default=None)
 

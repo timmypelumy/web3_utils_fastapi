@@ -3,7 +3,7 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Body
 from config import settings
 from web3 import Web3
 from time import sleep
-from models.wallet import GetBalanceInputModel, GetBalanceOutputModel
+from models.wallet import FetchBalanceInputModel, FetchBalanceOutputModel
 from lib import binance_wallet, celo_wallet, polygon_wallet, ethereum_wallet, bitcoin_wallet, litecoin_wallet
 
 ALLOWED_NETWORK_IDS = [1, 56, 137, 42220]
@@ -19,8 +19,8 @@ router = APIRouter(
 )
 
 
-@router.post('/get-balance', response_model=GetBalanceOutputModel, description='Fetch current balance of a wallet address, either the network ID or network name must be supplied. Network name is required for litecoin and  bitcoin while other networks such as celo and ethereum require only the network ID to be supplied')
-async def get_wallet_balance(body: GetBalanceInputModel = Body()):
+@router.post('/fetch-balance', response_model=FetchBalanceOutputModel, description='Fetch current balance of a wallet address, either the network ID or network name must be supplied. Network name is required for litecoin and  bitcoin while other networks such as celo and ethereum require only the network ID to be supplied')
+async def fetch_wallet_balance(body: FetchBalanceInputModel = Body()):
     network_id = body.network_id
     address = body.address
     network_name = body.network_name
@@ -97,8 +97,6 @@ async def get_wallet_balance(body: GetBalanceInputModel = Body()):
             'address': address,
             'denomination': 'satoshi'
         }
-
-    
 
     # print(balance, network_id)
 
