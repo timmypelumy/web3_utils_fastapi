@@ -1,12 +1,12 @@
 from pydantic import BaseModel, Field,  validator
-from typing import Set, Dict
+from typing import Set, Dict, Union
 
 
 class FiatToFiatInputModel(BaseModel):
     base_currency: str = Field(
         default='USD', max_length=4, min_length=3, alias='baseCurrency', description="Fiat currency to convert from.")
-    output_currencies: Set[str] = Field(default={'GBP', 'EUR', 'NGN', 'JPY', 'INR'},
-                                        alias='outputCurrencies', min_items=1, description="List of fiat currencies to convert to.")
+    output_currencies: Union[Set[str], None] = Field(default={'GBP', 'EUR', 'NGN', 'JPY', 'INR'},
+                                                     alias='outputCurrencies', min_items=1, description="List of fiat currencies to convert to.")
 
     @validator('base_currency', 'output_currencies')
     def is_valid_currency_code(cls, v):

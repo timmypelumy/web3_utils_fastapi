@@ -40,8 +40,16 @@ def fiat_to_fiat_conversions(body: FiatToFiatInputModel):
     headers = {
         'apiKey': settings.api_layer_key
     }
-    url = "https://api.apilayer.com/fixer/latest?symbols={0}&base={1}".format(
-        ','.join(body.output_currencies), body.base_currency)
+    url = None
+
+    if body.output_currencies:
+
+        url = "https://api.apilayer.com/fixer/latest?symbols={0}&base={1}".format(
+            ','.join(body.output_currencies), body.base_currency)
+
+    else:
+        url = "https://api.apilayer.com/fixer/latest?base={0}".format(
+            body.base_currency)
 
     response = request("GET", url, headers=headers)
 
