@@ -15,6 +15,6 @@ router = APIRouter(
 )
 
 
-@router.post('/fiat', response_description="Convert any valid crypto asset to its equivalent value in any other valid fiat currency.")
+@router.post('/fiat', description="Convert any valid crypto asset to its equivalent value in any other valid fiat currency.")
 def fiat_conversions():
     pass
