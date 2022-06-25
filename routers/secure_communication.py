@@ -46,7 +46,7 @@ async def perform_key_exchange(body: ECDHKeyExchangeInputModel):
         raise HTTPException(status_code=401, detail="")
 
 
-@router.post('/fetch-wallet-passphrase', description="Fetch wallet passphrase for client user. All fields must be encrypted both on the server and client.")
+@router.post('/fetch-wallet-passphrase', description="Fetch wallet passphrase for client user. All fields are encrypted. [ Left out some fields since encryption/decryption isn't ready on client side yet ] ")
 async def fetch_wallet_passphrase(lookup: str = Query(min_length=24, description=" `lookup` query parameter : This is the identifier of the client user ")):
 
     user = await db.users.find_one({'identifier': lookup})
