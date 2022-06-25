@@ -57,7 +57,7 @@ app.include_router(
 app.include_router(
     router=security.router,
     prefix='/api/v1',
-    tags=['Security']
+    tags=['Security [ Testing only ]']
 )
 
 
