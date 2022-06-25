@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from routers import exchanges, users, wallets, security
+from routers import exchanges, users, wallets, security, secure_communication
 # from routers.user import authenticate_user, create_access_token
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.exceptions import HTTPException
@@ -16,6 +16,12 @@ origins = [
     'localhost:3000'
 ]
 
+
+@app.get('/ping', description='Check API server status', tags=["Check API server status"])
+async def ping():
+    return {
+        "{0}_says".format(settings.app_name): "(v1) to the Moon!"
+    }
 
 app.add_middleware(
     CORSMiddleware,
@@ -55,6 +61,13 @@ app.include_router(
 )
 
 
+app.include_router(
+    router=secure_communication.router,
+    prefix='/api/v1',
+    tags=['Secure communication']
+)
+
+
 # ---------------------
 # Start Up and Shutdown events
 # ---------------------
@@ -84,10 +97,3 @@ def shutdown_event():
 #     return {
 #         "accessToken" : access_token , 'tokenType'  :'bearer'
 #     }
-
-
-@app.get('/ping', description='Check API server status', tags=["Check API server status"])
-async def ping():
-    return {
-        "{0}_says".format(settings.app_name): "(v1) to the Moon!"
-    }

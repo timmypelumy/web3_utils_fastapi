@@ -1,10 +1,12 @@
-
+from time import time
+from lib.security.encryption import keypair, symmetric
 from uuid import uuid4
 from fastapi import APIRouter,  HTTPException, BackgroundTasks
 from pydantic import Field
-from models.user import UserInModel, UserOutModel, UserDBModel
+from lib.security.encryption.pipeline_encryption import pipeline_encrypt
+from models.user import UserInModel, UserOutModel, UserDBModel, ECDHkeypairDBModel
 from models.wallet import CoinWalletModelDB
-from config import db
+from config import db, settings
 from datetime import datetime
 from datetime import datetime
 from uuid import uuid4
@@ -195,25 +197,36 @@ async def create_user(userData: UserInModel, background_tasks: BackgroundTasks):
         if not existingUser:
 
             backup = secret_phrase.generate_secret_phrase()
-            backup_phrase = backup['passphrase']
+            passphrase = backup['passphrase']
             seed = backup['seed']
+            new_keypair = keypair.generate_keypair(serialized=True)
 
             new_user = UserDBModel(**data, identifier=str(uuid4()),
                                    username=username, created=datetime.now().timestamp(),
                                    last_updated=datetime.now().timestamp(),
-                                   phrase_hash=get_hash(backup_phrase),
-                                   backup_phrase=backup_phrase
+                                   phrase_hash=get_hash(passphrase),
+                                   passphrase=symmetric.encrypt(
+                                       [settings.master_encryption_key, ], data=passphrase.encode()),
+
                                    )
 
             await db.users.insert_one(new_user.dict())
 
+            new_ecdh_db = ECDHkeypairDBModel(
+                user_identifier=new_user.identifier,
+                created=time(),
+                encrypted_private=symmetric.encrypt([settings.master_encryption_key, ], new_keypair['private']), encrypted_public=symmetric.encrypt([settings.master_encryption_key, ], new_keypair['public'])
+            )
+
+            await db.ecdh_keypairs.insert_one(new_ecdh_db.dict())
+
             background_tasks.add_task(
-                create_wallets,  new_user=new_user, backup_phrase=backup_phrase, seed=seed)
+                create_wallets,  new_user=new_user, backup_phrase=passphrase, seed=seed)
 
             return new_user
 
 
-@router.get('/{user_identifier}', response_model=UserOutModel)
+@ router.get('/{user_identifier}', response_model=UserOutModel)
 async def get_user_by_user_identifier(user_identifier: str = Field(min_length=32, max_length=48)):
     user = await db.users.find_one({'identifier': user_identifier})
     if not user:
@@ -222,7 +235,7 @@ async def get_user_by_user_identifier(user_identifier: str = Field(min_length=32
         return user
 
 
-@router.get('/{user_identifier}/wallets', response_model=List[CoinWalletModelDB])
+@ router.get('/{user_identifier}/wallets', response_model=List[CoinWalletModelDB])
 async def get_user_wallets(user_identifier: str = Field(min_length=32, max_length=48)):
     user = await db.users.find_one({'identifier': user_identifier})
     if not user:

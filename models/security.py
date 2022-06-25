@@ -59,3 +59,27 @@ class AsymmetricDecryptionInputModel(BaseModel):
 
     class Config:
         allow_population_by_field_name = True
+
+
+class ECDHKeyExchangeInputModel(BaseModel):
+    peer_public_key: str = Field(alias='peerPublicKey')
+    identifier: str
+
+    class Config:
+        allow_population_by_field_name = True
+
+
+class ECDHKeyExchangeOutputModel(BaseModel):
+    peer_public_key: str = Field(alias='peerPublicKey')
+
+    class Config:
+        allow_population_by_field_name = True
+
+
+class ECDHKeyExchangeDBModel(BaseModel):
+    peer_public_key: str = Field(alias='peerPublicKey')
+    timestamp: float = Field(gt=0)
+    client_id: str = Field(alias='clientId')
+
+    class Config:
+        allow_population_by_field_name = True

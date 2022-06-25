@@ -1,6 +1,6 @@
+from lib2to3.pgen2 import token
 from fastapi import APIRouter
-from codecs import decode
-from lib.security.encryption import generate_symmetric_key, symmetric, keypair, asymmetric
+from lib.security.encryption import generate_symmetric_key, symmetric, keypair, asymmetric, pipeline_encryption
 from models.security import *
 
 
@@ -73,14 +73,8 @@ def get_X25519_asymmetric_keypair():
 @router.post('/encryption/X25519-encryption', description=" [ ⚠⚠⚠ TESTING ONLY ‼ ]  Encrypt data using X25519 asymmetric encryption", response_model=EncryptionOutputModel)
 def X25519_asymmetric_encryption(body:  AsymmetricEncryptionInputModel):
 
-    private = keypair.load_private_key(body.private_key.encode())
-    peer_public = keypair.load_public_key(body.peer_public_key.encode())
-
-    shared = asymmetric.get_shared_key(private, peer_public)
-    derived = asymmetric.get_derived_key(
-        shared, body.salt.encode(), body.info.encode())
-
-    cipher = asymmetric.encrypt(derived, body.data.encode())
+    cipher = pipeline_encryption.pipeline_encrypt(
+        private_key=body.private_key.encode(), peer_public_key=body.peer_public_key.encode(), salt=body.salt.encode(), info=body.info.encode(), data=body.data.encode(), halfway=True)
 
     return {
         "cipher_text": cipher.hex(),
@@ -90,15 +84,10 @@ def X25519_asymmetric_encryption(body:  AsymmetricEncryptionInputModel):
 
 @router.post('/encryption/X25519-decryption', description=" [ ⚠⚠⚠ TESTING ONLY ‼ ]  Decrypt data using X25519 asymmetric encryption", response_model=DecryptionOutputModel)
 def X25519_asymmetric_decryption(body: AsymmetricDecryptionInputModel):
-
-    private = keypair.load_private_key(body.private_key.encode())
-    peer_public = keypair.load_public_key(body.peer_public_key.encode())
-
-    shared = asymmetric.get_shared_key(private, peer_public)
-    derived = asymmetric.get_derived_key(
-        shared, body.salt.encode(), body.info.encode())
-
-    data = asymmetric.decrypt(derived, bytes.fromhex(body.token))
+    data = pipeline_encryption.pipeline_decrypt(
+        private_key=body.private_key.encode(), peer_public_key=body.peer_public_key.encode(), salt=body.salt.encode(), info=body.info.encode(),
+        cipher=bytes.fromhex(body.token), halfway=True
+    )
 
     if data:
 

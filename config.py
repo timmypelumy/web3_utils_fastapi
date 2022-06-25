@@ -1,9 +1,12 @@
 from pydantic import BaseSettings
 import motor.motor_asyncio
 from typing import Union, Dict
+from cryptography.fernet import Fernet
 
 
 class AppSettings(BaseSettings):
+    master_encryption_key: Union[str,
+                                 bytes] = b'FVSrpDX6K9twuDINKqyr3NIhJML5Du3ksyp8Go7QS5M='
     app_name: str = "Beepo"
     db_url: str = 'mongodb://localhost:27017'
     api_layer_key: str = 'PZtaVnhWbgSDoy1ULZWTmomdSa89q74Z'

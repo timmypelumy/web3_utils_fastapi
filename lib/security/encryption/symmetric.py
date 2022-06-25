@@ -30,7 +30,7 @@ def rotate(keys: List[str], token: bytes) -> Union[bytes, None]:
         return None
 
 
-def decrypt(keys: List[Union[str, bytes]], token: bytes) -> Union[bytes, None]:
+def decrypt(keys: List[Union[str, bytes]], token: bytes):
     if not keys or len(keys) == 0:
         raise ValueError("Encryption key(s) is required")
 

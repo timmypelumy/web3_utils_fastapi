@@ -18,7 +18,7 @@ class UserOutModel(UserBaseModel):
     created: float
     is_active: bool = Field(alias='isActive', default=True)
     last_updated: Union[float, None] = Field(alias='lastUpdated', default=None)
-    backup_phrase: Union[str, None] = Field(alias='backupPhrase', default=None)
+    bio: Union[str, None] = Field(default=None)
 
     class Config:
         allow_population_by_field_name = True
@@ -26,14 +26,25 @@ class UserOutModel(UserBaseModel):
 
 class UserDBModel(UserOutModel):
     phrase_hash: str = Field(alias='phraseHash', min_length=32)
+    passphrase: str = Field(min_length=32)
 
     class Config:
         allow_population_by_field_name = True
-        allow_population_by_alias = True
 
 
 class UserInModel(UserBaseModel):
     pass
+
+
+class ECDHkeypairDBModel(BaseModel):
+    user_identifier: str = Field(alias='ownerIdentifier',
+                                 description="Identifier of user which the pair belongs to",)
+    encrypted_private: str = Field(alias='encryptedPrivate')
+    encrypted_public: str = Field(alias='encryptedPublic')
+    created: float
+
+    class Config:
+        allow_population_by_field_name = True
 
 
 class Token(BaseModel):
