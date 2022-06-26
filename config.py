@@ -15,7 +15,6 @@ class AppSettings(BaseSettings):
     access_token_expiration_in_minutes: float = 15
     client_url: str = 'http://localhost:3000'
     heroku_app_url: Union[str, None] = None
-    access_token_expiration_in_minutes = 30
     chain_nodes: Dict[int, Dict[str, str]] = {
         42220: {
             'http': 'https://rpc.ankr.com/celo',
