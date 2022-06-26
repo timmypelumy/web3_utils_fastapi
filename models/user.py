@@ -25,8 +25,10 @@ class UserOutModel(UserBaseModel):
 
 
 class UserDBModel(UserOutModel):
-    phrase_hash: str = Field(alias='phraseHash', min_length=32)
+    password: str = Field(alias='password', min_length=64)
     passphrase: str = Field(min_length=32)
+    disabled: bool = Field(default=False)
+    password_sent: bool = Field(default=False, alias='passwordSent')
 
     class Config:
         allow_population_by_field_name = True

@@ -1,21 +1,21 @@
 from pydantic import BaseSettings
 import motor.motor_asyncio
 from typing import Union, Dict
-from cryptography.fernet import Fernet
 
 
 class AppSettings(BaseSettings):
-    master_encryption_key: Union[str,
-                                 bytes] = b'FVSrpDX6K9twuDINKqyr3NIhJML5Du3ksyp8Go7QS5M='
+    master_encryption_key: bytes = b'FVSrpDX6K9twuDINKqyr3NIhJML5Du3ksyp8Go7QS5M='
+    encryption_salt: bytes = b'BVJKUIYFTDFKCUJSTDT^DE^&RIUFIJCVCUYDKUVr3NIhJML5D*&*%&&^RUIBVjvyudS5M='
     app_name: str = "Beepo"
     db_url: str = 'mongodb://localhost:27017'
     api_layer_key: str = 'PZtaVnhWbgSDoy1ULZWTmomdSa89q74Z'
     coingecko_key: str = ""
     secret_key: str = "@#$%^Ygtrdytfyiguo^Ou67798ouyxSD%IU7t65srdtuyiCXYTDFIUGOUC*^DDs57du6yiUSYDU"
     hash_algorithm: str = "HS256"
-    access_token_expiration_in_minutes: int = 60
+    access_token_expiration_in_minutes: float = 15
     client_url: str = 'http://localhost:3000'
     heroku_app_url: Union[str, None] = None
+    access_token_expiration_in_minutes = 30
     chain_nodes: Dict[int, Dict[str, str]] = {
         42220: {
             'http': 'https://rpc.ankr.com/celo',

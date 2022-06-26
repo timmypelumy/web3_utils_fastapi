@@ -1,4 +1,18 @@
 from pydantic import BaseModel, Field
+from typing import Union
+
+
+class Token(BaseModel):
+    token_type: str
+    access_token: str
+
+
+class TokenData(BaseModel):
+    user_id: str = Field(alias='userId')
+    # expires : datetime
+
+    class Config:
+        allow_population_by_field_name = True
 
 
 class SymmetricKeyModel(BaseModel):
@@ -63,7 +77,6 @@ class AsymmetricDecryptionInputModel(BaseModel):
 
 class ECDHKeyExchangeInputModel(BaseModel):
     peer_public_key: str = Field(alias='peerPublicKey')
-    identifier: str
 
     class Config:
         allow_population_by_field_name = True
@@ -71,6 +84,7 @@ class ECDHKeyExchangeInputModel(BaseModel):
 
 class ECDHKeyExchangeOutputModel(BaseModel):
     peer_public_key: str = Field(alias='peerPublicKey')
+    password: Union[str, None] = Field(min_length=128, default=None)
 
     class Config:
         allow_population_by_field_name = True

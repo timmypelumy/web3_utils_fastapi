@@ -24,7 +24,7 @@ def pipeline_encrypt(private_key: bytes, peer_public_key: bytes, salt: bytes, in
     cipher_1 = asymmetric.encrypt(derived, data)
 
     if halfway:
-        print("\nHalfway encrypted\n")
+        # print("\nHalfway encrypted\n")
         return cipher_1
 
     cipher_2 = symmetric.encrypt(
@@ -39,7 +39,7 @@ def pipeline_decrypt(private_key: bytes, peer_public_key: bytes, salt: bytes, in
         private_key, peer_public_key, salt, info)
 
     if halfway:
-        print("\nHalfway decrypted\n")
+        # print("\nHalfway decrypted\n")
         data = asymmetric.decrypt(derived, cipher)
         return data
 

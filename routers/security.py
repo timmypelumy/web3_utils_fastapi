@@ -92,7 +92,7 @@ def X25519_asymmetric_decryption(body: AsymmetricDecryptionInputModel):
     if data:
 
         return {
-            "data": data.decode()}
+            "data": data.hex()}
 
     else:
         return None

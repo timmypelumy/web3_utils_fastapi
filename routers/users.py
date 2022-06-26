@@ -3,7 +3,6 @@ from lib.security.encryption import keypair, symmetric
 from uuid import uuid4
 from fastapi import APIRouter,  HTTPException, BackgroundTasks
 from pydantic import Field
-from lib.security.encryption.pipeline_encryption import pipeline_encrypt
 from models.user import UserInModel, UserOutModel, UserDBModel, ECDHkeypairDBModel
 from models.wallet import CoinWalletModelDB
 from config import db, settings
@@ -15,6 +14,7 @@ from passlib.context import CryptContext
 from typing import List
 from nanoid import generate
 from slugify import slugify
+from lib.security.hashing import password_management
 
 
 router = APIRouter(
@@ -201,12 +201,18 @@ async def create_user(userData: UserInModel, background_tasks: BackgroundTasks):
             seed = backup['seed']
             new_keypair = keypair.generate_keypair(serialized=True)
 
-            new_user = UserDBModel(**data, identifier=str(uuid4()),
+            identifier = str(uuid4())
+
+            encrypted_password = symmetric.encrypt(
+                [settings.master_encryption_key, ], data=password_management.generate_password())
+            encrypted_passphrase = symmetric.encrypt(
+                [settings.master_encryption_key, ], data=passphrase.encode())
+
+            new_user = UserDBModel(**data, identifier=identifier,
                                    username=username, created=datetime.now().timestamp(),
                                    last_updated=datetime.now().timestamp(),
-                                   phrase_hash=get_hash(passphrase),
-                                   passphrase=symmetric.encrypt(
-                                       [settings.master_encryption_key, ], data=passphrase.encode()),
+                                   password=encrypted_password.decode(),
+                                   passphrase=encrypted_passphrase.decode()
 
                                    )
 
