@@ -3,8 +3,8 @@ from typing import Union
 
 
 class Token(BaseModel):
-    token_type: str
-    access_token: str
+    token_type: str = Field()
+    access_token: str = Field()
 
 
 class TokenData(BaseModel):
@@ -84,7 +84,8 @@ class ECDHKeyExchangeInputModel(BaseModel):
 
 class ECDHKeyExchangeOutputModel(BaseModel):
     peer_public_key: str = Field(alias='peerPublicKey')
-    password: Union[str, None] = Field(min_length=128, default=None)
+    password: Union[str, None] = Field(
+        min_length=128, default=None, description="[Encrypted field]")
 
     class Config:
         allow_population_by_field_name = True

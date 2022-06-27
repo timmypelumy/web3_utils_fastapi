@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from routers import exchanges, users, wallets, security, secure_communication
+from routers import exchanges, users, wallets, security,  authentication
 # from routers.user import authenticate_user, create_access_token
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.exceptions import HTTPException
@@ -41,6 +41,14 @@ app.include_router(
 
 
 app.include_router(
+    router=authentication.router,
+    prefix='/api/v1',
+    tags=['Authentication'],
+
+)
+
+
+app.include_router(
     router=wallets.router,
     prefix='/api/v1',
     tags=['Wallets']
@@ -58,13 +66,6 @@ app.include_router(
     router=security.router,
     prefix='/api/v1',
     tags=['Security [ Testing only ]']
-)
-
-
-app.include_router(
-    router=secure_communication.router,
-    prefix='/api/v1',
-    tags=['Secure communication']
 )
 
 

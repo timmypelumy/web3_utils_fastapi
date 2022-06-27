@@ -6,10 +6,10 @@ from datetime import timedelta, datetime
 from fastapi.security import OAuth2PasswordBearer
 from fastapi import HTTPException, Depends
 from models.user import UserDBModel
-from lib.security.encryption import symmetric, pipeline_encryption
+from lib.security.encryption import symmetric
 
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/api/v1/secure-comm/login')
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/api/v1/auth/login')
 
 
 async def authenticate_client(username: str, password: bytes):
@@ -26,7 +26,7 @@ async def authenticate_client(username: str, password: bytes):
         else:
             return False
 
-    if password_management.verify_hash_with_scrypt(username.encode(), bytes.fromhex(user['password']), password):
+    if password_management.verify_hash_with_scrypt(settings.encryption_salt, bytes.fromhex(user['password']), password):
         return user
 
     else:

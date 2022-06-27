@@ -1,9 +1,9 @@
 from time import time
-from lib.security.encryption import keypair, symmetric
+from lib.security.encryption import keypair, symmetric, pipeline_encryption
 from uuid import uuid4
-from fastapi import APIRouter,  HTTPException, BackgroundTasks
+from fastapi import APIRouter,  HTTPException, BackgroundTasks, Depends
 from pydantic import Field
-from models.user import UserInModel, UserOutModel, UserDBModel, ECDHkeypairDBModel
+from models.user import UserInModel, UserOutModel, UserDBModel, ECDHkeypairDBModel, WalletPhrase
 from models.wallet import CoinWalletModelDB
 from config import db, settings
 from datetime import datetime
@@ -15,6 +15,7 @@ from typing import List
 from nanoid import generate
 from slugify import slugify
 from lib.security.hashing import password_management
+from dependencies.security import get_exchange_keys_raw, get_logged_in_active_user
 
 
 router = APIRouter(
@@ -241,13 +242,30 @@ async def get_user_by_user_identifier(user_identifier: str = Field(min_length=32
         return user
 
 
-@ router.get('/{user_identifier}/wallets', response_model=List[CoinWalletModelDB])
-async def get_user_wallets(user_identifier: str = Field(min_length=32, max_length=48)):
-    user = await db.users.find_one({'identifier': user_identifier})
-    if not user:
-        raise HTTPException(status_code=404, detail='user does not exist.')
-    else:
-        cursor = db.coin_wallets.find(
-            {'ownerId': user_identifier}).sort('network_name', 1)
-        docs = await cursor.to_list(length=6)
-        return docs
+@ router.get('/my-wallets', response_model=List[CoinWalletModelDB], )
+async def get_user_wallets(logged_in_user: UserDBModel = Depends(get_logged_in_active_user)):
+
+    cursor = db.coin_wallets.find(
+        {'ownerId': logged_in_user.identifier}).sort('network_name', 1)
+    docs = await cursor.to_list(length=6)
+    return docs
+
+
+@router.post('/fetch-wallet-passphrase', response_model=WalletPhrase, description="Fetch wallet passphrase for client user. All fields are encrypted. [ Left out some fields since encryption/decryption isn't ready on client side yet ] ")
+async def fetch_wallet_passphrase(logged_in_user: UserDBModel = Depends(get_logged_in_active_user)):
+
+    exchange_keys = await get_exchange_keys_raw(logged_in_user)
+
+    decrypted_phrase = symmetric.decrypt(
+        [settings.master_encryption_key, ], logged_in_user['passphrase'].encode())
+
+    ecdh_encrypted_passphrase = pipeline_encryption.pipeline_encrypt(
+        private_key=exchange_keys['key'], peer_public_key=exchange_keys['peer_key'], salt=settings.encryption_salt, info=''.encode(), halfway=True, data=decrypted_phrase).hex()
+
+    if decrypted_phrase:
+
+        return {
+            "passphrase": ecdh_encrypted_passphrase,
+            "raw_passphrase": decrypted_phrase}
+
+    return None

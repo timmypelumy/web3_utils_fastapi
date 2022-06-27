@@ -52,3 +52,12 @@ class ECDHkeypairDBModel(BaseModel):
 class Token(BaseModel):
     token_type: str = Field(alias='tokenType')
     access_token: str = Field(alias='accessToken')
+
+
+class WalletPhrase(BaseModel):
+    passphrase: str = Field(description="[Encrypted field]")
+    raw_passphrase: Union[str, None] = Field(default=None,
+                                             description="Unencrypted passphrase, will be removed in production.", alias='rawPassphrase')
+
+    class Config:
+        allow_population_by_field_name = True
