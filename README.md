@@ -18,7 +18,7 @@
 
 - <b>Authentication Layer</b>
 
-  The authentication layer follows the `Open Authentication (OAuth) ` standard. This employs the use of a `username` and `password` for authenticating with the server.
+The authentication layer follows the `Open Authentication (OAuth) ` standard. This employs the use of a `username` and `password` for authenticating with the server.
   The server checks the `username` and `password` against the set values and determines whether authorization is granted or not. The `username` parameter is a standard placeholder in OAuth, any value that fits the context such as `email`, `phone` or some `id` can be supplied via the `username` parameter. 
   
   To limit the use of the `username` and `password` for authentication and preserve authentication sessions in between app states, ***JWT (JSON Web Token)*** has been introduced into the authentication layer. Once a user authenticates with their `username` and `password`, a **JWT access token** is returned to them, this is stored locally on the client side and attached to subsequent request to protected endpoints. The server validates the access token and determines whether access is granted or not. The **JWT tokens** used in this project have an expiration time in minutes, therefore, once an access token is revoked, a new one must be requested by re-authenticating with the `username` and `password`.
@@ -30,9 +30,10 @@
   > Token expiration time : `15 minutes`
   
   <br/>
+  
 - <b>Data Encryption Layer</b>
 
-  The data encryption layer ensures security and privacy of data on the server and also in transit between the server and the client. **Symmetric encryption** is used to store data safely on th server, the details of the implementation is irrelevant to the client. **Asymmetric encryption** is used for securing data in transit between the server and the client. **Asymmetric encryption** employs the use of **public and private keys** in encrypting and decrypting data.
+The data encryption layer ensures security and privacy of data on the server and also in transit between the server and the client. **Symmetric encryption** is used to store data safely on th server, the details of the implementation is irrelevant to the client. **Asymmetric encryption** is used for securing data in transit between the server and the client. **Asymmetric encryption** employs the use of **public and private keys** in encrypting and decrypting data.
   
   The **Key Exchange Algorithm** type used in this project is the [***Elliptic Curve Diffie-Hellman***](https://cryptography.io/en/latest/hazmat/primitives/asymmetric/x25519/) algorithm. It works thus:
   
@@ -47,9 +48,10 @@
   5. Once the exchange is complete, data is encrypted and decrypted using ***AES*** encryption. The client encrypts, the server decrypts and vice-versa. The form of **AES** used will not be disclosed here.
   
   <br/>
+  
 - <b> API Layer </b>
 
-  The [Application Programming Interface](https://beepo-app.herokuapp.com/doc) is in development currently and divided into strategic sections. The [documentation](https://beepo-app.herokuapp.com/redoc) is explanatory and allows for testing the API from the page.
+The [Application Programming Interface](https://beepo-app.herokuapp.com/doc) is in development currently and divided into strategic sections. The [documentation](https://beepo-app.herokuapp.com/redoc) is explanatory and allows for testing the API from the page.
   
   All schemas defined should be studied, fields that deliver encrypted content are marked with **[Encrypted]**, fields that are also expected to be sent as encrypted text from client are also marked the same way. 
   
