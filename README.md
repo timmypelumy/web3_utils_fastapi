@@ -1,7 +1,7 @@
 ![101505185](https://user-images.githubusercontent.com/82800805/175931942-7561237c-4219-452e-8c52-2125d4972170.png)
-## Beepo Server
-### Beepo app backend infrastructure
-
+## Intro
+ **Beepo is a blockchain powered chat app with full wallet integration allowing you to trade assets with friends at the touch of a button.**
+<br/>
 >  Connect to the <b>Test APIs</b> on heroku [here](https://beepo-app.herokuapp.com/api/v1).
 
 >  View API documentation [here](https://beepo-app.herokuapp.com/docs).
@@ -49,7 +49,7 @@
   <br/>
 - <b> API Layer </b>
 
-  The [Application Programming Interface](https://beepo-app.herokuapp.com/api/v1) is in development currently and divided into strategic sections. The [documentation](https://beepo-app.herokuapp.com/docs) is explanatory and allows for testing the API from the page.
+  The [Application Programming Interface](https://beepo-app.herokuapp.com/doc) is in development currently and divided into strategic sections. The [documentation](https://beepo-app.herokuapp.com/redoc) is explanatory and allows for testing the API from the page.
   
   All schemas defined should be studied, fields that deliver encrypted content are marked with **[Encrypted]**, fields that are also expected to be sent as encrypted text from client are also marked the same way. 
   
