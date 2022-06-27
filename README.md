@@ -1,6 +1,6 @@
 ![101505185](https://user-images.githubusercontent.com/82800805/175931942-7561237c-4219-452e-8c52-2125d4972170.png)
 ## Intro
- **Beepo is a blockchain powered chat app with full wallet integration allowing you to trade assets with friends at the touch of a button.**
+ **Beepo is a chat app with full blockchain wallet integration allowing you to trade assets with friends at the touch of a button.**
 <br/>
 >  Connect to the <b>Test APIs</b> on heroku [here](https://beepo-app.herokuapp.com/api/v1).
 
