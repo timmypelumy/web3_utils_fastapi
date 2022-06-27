@@ -51,9 +51,9 @@ The data encryption layer ensures security and privacy of data on the server and
   
 - <b> API Layer </b>
 
-The [Application Programming Interface](https://beepo-app.herokuapp.com/docs) is in development currently and divided into strategic sections. The [documentation](https://beepo-app.herokuapp.com/redoc) is explanatory and allows for testing the API from the page.
+The [Application Programming Interface](https://beepo-app.herokuapp.com/docs) is in development, the API reference uses the Swagger OpenAPI format. An [alternative documentation](https://beepo-app.herokuapp.com/redoc) is also available. Quick testing can be done directly from the Swagger API reference page.
   
-  All schemas defined should be studied, fields that deliver encrypted content are marked with *[Encrypted]*, fields that are also expected to be sent as encrypted text from client are also marked the same way. 
+All schemas defined should be noted, fields that deliver encrypted content are marked with *[Encrypted]*, fields that are also expected to be sent as encrypted text from client are also marked the same way. 
   
   
   
