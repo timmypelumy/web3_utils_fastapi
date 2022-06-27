@@ -8,7 +8,7 @@
 
 >  View alternative API documentation [here](https://beepo-app.herokuapp.com/redoc).
 
-<b> <span style = "color:green;"> PS ✅ The Test API is live and currently in developement. </span> </b>
+<b> PS ✅ The Test API is live and currently in development. </b>
 
 ---
 
