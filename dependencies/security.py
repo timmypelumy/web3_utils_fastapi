@@ -65,10 +65,10 @@ async def get_logged_in_user(token: str = Depends(oauth2_scheme)):
     return user
 
 
-async def get_logged_in_active_user(user: UserDBModel = Depends(get_logged_in_user)):
+async def get_logged_in_active_user(user: Dict = Depends(get_logged_in_user)):
     if user['disabled']:
         raise HTTPException(status_code=401, detail="Unauthorized user")
-    return user
+    return UserDBModel(**user)
 
 
 def generate_access_token(data: Dict):
@@ -86,7 +86,7 @@ async def get_exchange_keys_raw(logged_in_user:  Union[None, UserDBModel], stric
         # print("NO LOOKUP")
         raise HTTPException(status_code=401, detail='Unauthorized user')
 
-    user_id = replacement_id if replacement_id else logged_in_user['identifier']
+    user_id = replacement_id if replacement_id else logged_in_user.identifier
 
     server_ecdh = await db.ecdh_keypairs.find_one({"user_identifier": user_id})
 
@@ -123,4 +123,4 @@ async def get_exchange_keys_raw(logged_in_user:  Union[None, UserDBModel], stric
 
 
 async def get_exchange_keys(logged_in_user: Union[UserDBModel, None] = Depends(get_logged_in_active_user)):
-    return get_exchange_keys_raw(logged_in_user)
+    return await get_exchange_keys_raw(logged_in_user)

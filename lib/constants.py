@@ -10,6 +10,13 @@ class TransactionNetworks(str, Enum):
     polygon = 'polygon'
 
 
+class NetworkSubunits(str, Enum):
+    wei = 'wei'
+    gwei = 'gwei'
+    satoshi = 'satoshi'
+    litoshi = 'litoshi'
+
+
 LITECOIN_MAINNET = 'litecoin'
 BITCOIN_MAINNET = 'bitcoin'
 BINANCE_MAINNET = 'binance'

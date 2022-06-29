@@ -9,13 +9,14 @@ from config import db, settings
 from datetime import datetime
 from datetime import datetime
 from uuid import uuid4
-from lib import bitcoin_wallet, secret_phrase, litecoin_wallet, ethereum_wallet, binance_wallet, celo_wallet, polygon_wallet, constants
+from lib.wallets import bitcoin_wallet, secret_phrase, litecoin_wallet, ethereum_wallet, celo_wallet, polygon_wallet, binance_wallet
 from passlib.context import CryptContext
 from typing import List
 from nanoid import generate
 from slugify import slugify
 from lib.security.hashing import password_management
 from dependencies.security import get_exchange_keys_raw, get_logged_in_active_user
+from lib import constants
 
 
 router = APIRouter(

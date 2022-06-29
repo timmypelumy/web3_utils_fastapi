@@ -10,9 +10,12 @@ class AppSettings(BaseSettings):
     db_url: str = 'mongodb://localhost:27017'
     api_layer_key: str = 'PZtaVnhWbgSDoy1ULZWTmomdSa89q74Z'
     coingecko_key: str = ""
+    etherscan_key: str = 'XNSZYWDMS3126XC8BKSTIYKDIUNFR2VECM'
+    bsccan_key: str = ''
+    celoscan_key: str = ''
     secret_key: str = "@#$%^Ygtrdytfyiguo^Ou67798ouyxSD%IU7t65srdtuyiCXYTDFIUGOUC*^DDs57du6yiUSYDU"
     hash_algorithm: str = "HS256"
-    access_token_expiration_in_minutes: float = 15
+    access_token_expiration_in_minutes: float = 60
     client_url: str = 'http://localhost:3000'
     heroku_app_url: Union[str, None] = None
     chain_nodes: Dict[int, Dict[str, str]] = {

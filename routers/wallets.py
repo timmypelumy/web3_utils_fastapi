@@ -4,7 +4,8 @@ from config import settings
 from web3 import Web3
 from time import sleep
 from models.wallet import FetchBalanceInputModel, FetchBalanceOutputModel
-from lib import binance_wallet, celo_wallet, polygon_wallet, ethereum_wallet, bitcoin_wallet, litecoin_wallet, constants
+from lib.wallets import celo_wallet, polygon_wallet, ethereum_wallet, bitcoin_wallet, litecoin_wallet, binance_wallet
+from lib import constants
 
 
 router = APIRouter(
@@ -13,12 +14,6 @@ router = APIRouter(
         404: {"description": "Resource does not exist"}
     }
 )
-
-
-
-@router.post('/gas-station/estimate-gas-fee')
-def estimate_gas_fee():
-    pass
 
 
 @router.post('/fetch-balance', response_model=FetchBalanceOutputModel, description='Fetch an address balance from the corresponding network, `networkName` can be celo, ethereum, binance, and so on.  ')

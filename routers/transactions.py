@@ -1,11 +1,14 @@
+from lib import constants
+from lib.wallets import ethereum_wallet, binance_wallet, celo_wallet, bitcoin_wallet, polygon_wallet, litecoin_wallet
 from fastapi import APIRouter, Depends, HTTPException
 from config import db
-from models.transactions import CreateTransactionOutputModel, CreateTransactionInputModel, TxBufferModel, TransactionModel, AuthorizeTransactionInputModel
+from models.transactions import CreateTransactionOutputModel, TransactionInputModel, TransactionModel, AuthorizeTransactionInputModel
 from lib.security.encryption import pipeline_encryption
 from dependencies.security import get_logged_in_active_user, get_exchange_keys
 from models.user import UserDBModel
 from typing import Dict
 from config import settings
+
 
 router = APIRouter(
     prefix='/transactions',
@@ -16,30 +19,25 @@ router = APIRouter(
 
 
 @router.post('/create', response_model=CreateTransactionOutputModel, )
-async def create_new_transaction(tx_data: CreateTransactionInputModel,  user: UserDBModel = Depends(get_logged_in_active_user), exchange_keys: Dict[str, str] = Depends(get_exchange_keys)):
-    tx_info = tx_data.dict()
-    tx_info.update(
-        {
-            'from_user_id': str(user.identifier),
-            'to_user_id': str(tx_data.to_user_id)
-        }
-    )
-    tx_buffer = TxBufferModel(**tx_info)
-    tx_buffer_db = tx_buffer.dict()
+async def create_new_transaction(tx_data: TransactionInputModel,  user: UserDBModel = Depends(get_logged_in_active_user), exchange_keys: Dict[str, str] = Depends(get_exchange_keys)):
 
-    tx_buffer_db.update({
-        'uid': str(tx_buffer.uid)
+    tx = tx_data.dict()
+
+    tx.update({
+        'uid': str(tx_data.uid),
+        'from_user_id': str(user.identifier),
+        'to_user_id': str(tx_data.to_user_id)
     })
 
-    await db.tx_buffers.insert_one(tx_buffer_db)
+    await db.tx_buffers.insert_one(tx)
 
-    saved_buffer = await db.tx_buffers.find_one({'uid': str(tx_buffer.uid)})
+    saved_buffer = await db.tx_buffers.find_one({'uid': tx['uid']})
 
     if saved_buffer:
 
         return {
-            'network_name': tx_buffer.network_name,
-            'uid': tx_buffer.uid
+            'network_name': tx_data.network_name,
+            'transaction_uid': tx_data.uid,
         }
 
     else:
@@ -70,6 +68,6 @@ async def authorize_transaction(tx_info:  AuthorizeTransactionInputModel, user: 
         return None
 
 
-@router.post('/gas-station/estimate-gas-fee')
-def estimate_gas_fee(user: UserDBModel = Depends(get_logged_in_active_user), exchange_keys: Dict[str, str] = Depends(get_exchange_keys)):
+@router.post('/gas-station')
+def fetch_network_gas_fee(user: UserDBModel = Depends(get_logged_in_active_user), exchange_keys: Dict[str, str] = Depends(get_exchange_keys)):
     pass

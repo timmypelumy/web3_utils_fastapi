@@ -1,8 +1,10 @@
+from ctypes import Union
 from datetime import datetime
 from pydantic import BaseModel, Field, validator
 from lib import constants
 from uuid import UUID
 from .wallet import get_timestamp, get_uuid4, is_valid_bitcoin_based_address, is_valid_evm_based_address
+from typing import Union
 
 
 class CreateTransactionInputModel(BaseModel):
@@ -12,9 +14,10 @@ class CreateTransactionInputModel(BaseModel):
     is_contract_call: bool = Field(default=False, alias='isContractCall')
     from_address: str = Field(alias='fromAddress')
     to_address: str = Field(alias='toAddress')
-    # from_user_id: UUID = Field(alias='fromUserId')
     to_user_id: UUID = Field(alias='toUserId')
-    unit: str = Field(min_length=3)
+    unit: constants.NetworkSubunits
+    passphrase: str = Field(
+        min_length=24, description='User passphrase, needed to sign transactions. [Encrypted] ')
 
     @validator('to_address', 'from_address', always=True)
     def is_valid_address(cls, v, values):
@@ -45,9 +48,9 @@ class CreateTransactionInputModel(BaseModel):
 
 class CreateTransactionOutputModel(BaseModel):
     network_name:  constants.TransactionNetworks = Field(
-        min_length=3, alias='networkName', description="Network to place the transaction on e.g Ethereum, Celo.")
-    uid: UUID = Field(description="Unique identifier ",
-                      default_factory=get_uuid4)
+        alias='networkName', description="Network to place the transaction on e.g Ethereum, Celo.")
+    transaction_uid: UUID = Field(description="Unique identifier ",
+                                  default_factory=get_uuid4, alias='transactionUid')
 
     class Config:
         allow_population_by_field_name = True
@@ -57,7 +60,7 @@ class CreateTransactionOutputModel(BaseModel):
 
 
 class AuthorizeTransactionInputModel(CreateTransactionOutputModel):
-    encrypted_passphrase: str = Field(min_length=24)
+    pass
 
     class Config:
         allow_population_by_field_name = True
@@ -71,14 +74,13 @@ class BaseTransactionModel(BaseModel):
                       default_factory=get_uuid4)
     created: float = Field(gt=0, default_factory=get_timestamp)
     network_name:  constants.TransactionNetworks = Field(
-        min_length=3, alias='networkName', description="Network the transaction took place on e.g Ethereum, Celo.")
+        alias='networkName', description="Network the transaction took place on e.g Ethereum, Celo.")
     value: float = Field(ge=0)
-    from_user_id: UUID = Field(alias='fromUserId')
     to_user_id: UUID = Field(alias='toUserId')
     is_contract_call: bool = Field(default=False, alias='isContractCall')
     from_address: str = Field(alias='fromAddress')
     to_address: str = Field(alias='toAddress')
-    unit: str = Field(min_length=3)
+    unit: constants.NetworkSubunits
 
     class Config:
         allow_population_by_field_name = True
@@ -115,22 +117,22 @@ class BaseTransactionModel(BaseModel):
 
 
 class TransactionModel(BaseTransactionModel):
-
     block_timestamp: float = Field(gt=0, alias='blockTimestamp')
     mined: bool = Field(default=False)
     dropped: bool = Field(default=False)
-    pending: bool = Field(default=True)
-    nonce: str = Field()
-    is_hidden: bool = Field(default=False, alias='isHidden')
     transaction_hash: str = Field(min_length=24, alias='transactionHash')
+    nonce: str = Field()
+    pending: bool = Field(default=True)
+    is_hidden: bool = Field(default=False, alias='isHidden')
+    from_user_id: UUID = Field(alias='fromUserId')
     last_updated: float = Field(
         gt=0, default_factory=datetime.utcnow, alias='lastUpdated')
 
 
-class TxBufferModel(BaseTransactionModel):
-
+class TransactionInputModel(BaseTransactionModel):
     is_authorized: bool = Field(default=False, alias='isAuthorized')
     has_expired: bool = Field(default=False, alias='hasExpired')
+    from_user_id: Union[UUID, None] = Field(alias='fromUserId', default=None)
 
     class Config:
         allow_population_by_field_name = True
