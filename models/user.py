@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, HttpUrl
 from typing import Union
 
 
@@ -6,6 +6,8 @@ class UserBaseModel(BaseModel):
     display_name: str = Field(
         alias='displayName', min_length=1, max_length=32, description="User display name")
     platform_info: Union[str, None] = Field(alias='platformInfo', default=None)
+    profile_photo_url:  HttpUrl = Field(
+        alias='profilePhotoUrl', description="url to user's profile photo")
 
     class Config:
         allow_population_by_field_name = True

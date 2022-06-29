@@ -4,11 +4,7 @@ from config import settings
 from web3 import Web3
 from time import sleep
 from models.wallet import FetchBalanceInputModel, FetchBalanceOutputModel
-from lib import binance_wallet, celo_wallet, polygon_wallet, ethereum_wallet, bitcoin_wallet, litecoin_wallet
-
-ALLOWED_NETWORK_IDS = [1, 56, 137, 42220]
-LITECOIN = 'litecoin'
-BITCOIN = 'bitcoin'
+from lib import binance_wallet, celo_wallet, polygon_wallet, ethereum_wallet, bitcoin_wallet, litecoin_wallet, constants
 
 
 router = APIRouter(
@@ -19,64 +15,65 @@ router = APIRouter(
 )
 
 
-@router.post('/fetch-balance', response_model=FetchBalanceOutputModel, description='Fetch current balance of a wallet address, either the network ID or network name must be supplied. Network name is required for litecoin and  bitcoin while other networks such as celo and ethereum require only the network ID to be supplied')
+
+@router.post('/gas-station/estimate-gas-fee')
+def estimate_gas_fee():
+    pass
+
+
+@router.post('/fetch-balance', response_model=FetchBalanceOutputModel, description='Fetch an address balance from the corresponding network, `networkName` can be celo, ethereum, binance, and so on.  ')
 async def fetch_wallet_balance(body: FetchBalanceInputModel = Body()):
-    network_id = body.network_id
     address = body.address
     network_name = body.network_name
 
     balance = None
 
-    if network_id == 1:
+    if network_name == constants.ETHEREUM_MAINNET:
         balance = ethereum_wallet.get_balance(address)
 
         return {
             'balance': balance,
             'networkName': 'Ethereum',
-            'networkId': network_id,
             'address': address,
             'denomination': 'wei'
 
         }
 
-    if network_id == 56:
+    if network_name == constants.BINANCE_MAINNET:
         balance = binance_wallet.get_balance(address)
 
         return {
             'balance': balance,
             'networkName': 'Binance',
-            'networkId': network_id,
             'address': address,
             'denomination': 'wei'
 
         }
 
-    if network_id == 137:
+    if network_name == constants.POLYGON_MAINNET:
 
         balance = polygon_wallet.get_balance(address)
 
         return {
             'balance': balance,
             'networkName': 'Polygon',
-            'networkId': network_id,
             'address': address,
             'denomination': 'wei'
 
         }
 
-    if network_id == 42220:
+    if network_name == constants.CELO_MAINNNET:
         balance = celo_wallet.get_balance(address)
 
         return {
             'balance': balance,
             'networkName': 'celo',
-            'networkId': network_id,
             'address': address,
             'denomination': 'wei'
 
         }
 
-    if network_name.lower() == LITECOIN:
+    if network_name.lower() == constants.LITECOIN_MAINNET:
         balance = litecoin_wallet.get_balance(address)
         print(balance)
         return {
@@ -87,7 +84,7 @@ async def fetch_wallet_balance(body: FetchBalanceInputModel = Body()):
 
         }
 
-    if network_name.lower() == BITCOIN:
+    if network_name.lower() == constants.BITCOIN_MAINNET:
         balance = bitcoin_wallet.get_balance(address)
         print(balance)
         return {
@@ -98,7 +95,7 @@ async def fetch_wallet_balance(body: FetchBalanceInputModel = Body()):
             'denomination': 'satoshi'
         }
 
-    # print(balance, network_id)
+    # print(balance, network_name)
 
 
 class ConnnectionManager:
@@ -246,8 +243,8 @@ async def get_live_balances(websocket: WebSocket):
         while True:
 
             data = await websocket.receive_json()
-            network_id = data['network_id']
-            room_id = 'LIVE_BALANCES_{0}'.format(network_id)
+            network_name = data['network_name']
+            room_id = 'LIVE_BALANCES_{0}'.format(network_name)
             manager.add_room(room_id)
 
             manager.add_to_room(

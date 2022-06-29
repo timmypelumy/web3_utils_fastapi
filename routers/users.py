@@ -9,7 +9,7 @@ from config import db, settings
 from datetime import datetime
 from datetime import datetime
 from uuid import uuid4
-from lib import bitcoin_wallet, secret_phrase, litecoin_wallet, ethereum_wallet, binance_wallet, celo_wallet, polygon_wallet
+from lib import bitcoin_wallet, secret_phrase, litecoin_wallet, ethereum_wallet, binance_wallet, celo_wallet, polygon_wallet, constants
 from passlib.context import CryptContext
 from typing import List
 from nanoid import generate
@@ -65,7 +65,6 @@ async def create_wallets(new_user: UserOutModel, backup_phrase, seed):
     #     seed, new_user.username)
 
     bitcoin_account_db = CoinWalletModelDB(
-        identifier=str(uuid4()),
         coinName='Bitcoin',
         coinTicker='BTC',
         coinDescription="Bitcoin Protocol",
@@ -73,15 +72,15 @@ async def create_wallets(new_user: UserOutModel, backup_phrase, seed):
         derivationPath=bitcoin_wallet_info['path'],
         lastUpdated=datetime.now().timestamp(),
         networkId=None,
-        networkName='Bitcoin',
+        networkName=constants.TransactionNetworks.bitcoin,
         address=bitcoin_wallet_info['address'],
         ownerId=new_user.identifier,
-        pkHash=get_hash(bitcoin_wallet_info['wif_key']),
+        networkDisplayName="Bitcoin Protocol",
+
 
     )
 
     litecoin_account_db = CoinWalletModelDB(
-        identifier=str(uuid4()),
         coinName='Litecoin',
         coinTicker='LTC',
         coinDescription="Litecoin Protocol",
@@ -89,15 +88,15 @@ async def create_wallets(new_user: UserOutModel, backup_phrase, seed):
         derivationPath=litecoin_wallet_info['path'],
         lastUpdated=datetime.now().timestamp(),
         networkId=None,
-        networkName='Litecoin',
+        networkName=constants.TransactionNetworks.litecoin,
         address=litecoin_wallet_info['address'],
         ownerId=new_user.identifier,
-        pkHash=get_hash(litecoin_wallet_info['wif_key']),
+        networkDisplayName="Litecoin Protocol",
+
 
     )
 
     binance_account_db = CoinWalletModelDB(
-        identifier=str(uuid4()),
         coinName='Smartchain',
         coinTicker='BNB',
         coinDescription="Binance Smartchain",
@@ -105,15 +104,15 @@ async def create_wallets(new_user: UserOutModel, backup_phrase, seed):
         derivationPath=binance_wallet_info['path'],
         lastUpdated=datetime.now().timestamp(),
         networkId=56,
-        networkName='Binance Smartchain Mainnet',
+        networkName=constants.TransactionNetworks.binance,
         address=binance_wallet_info['address'],
         ownerId=new_user.identifier,
-        pkHash=get_hash(binance_wallet_info['private_key']),
+        networkDisplayName="Binance Smartchain Network",
+
 
     )
 
     ethereum_account_db = CoinWalletModelDB(
-        identifier=str(uuid4()),
         coinName='Ether',
         coinTicker='ETH',
         coinDescription="Ethereum",
@@ -121,15 +120,15 @@ async def create_wallets(new_user: UserOutModel, backup_phrase, seed):
         derivationPath=ethereum_wallet_info['path'],
         lastUpdated=datetime.now().timestamp(),
         networkId=1,
-        networkName='Ethereum Mainnet',
+        networkName=constants.TransactionNetworks.ethereum,
         address=ethereum_wallet_info['address'],
         ownerId=new_user.identifier,
-        pkHash=get_hash(ethereum_wallet_info['private_key']),
+        networkDisplayName="Ethereum Network",
+
 
     )
 
     polygon_account_db = CoinWalletModelDB(
-        identifier=str(uuid4()),
         coinName='Matic',
         coinTicker='MATIC',
         coinDescription="Polygon",
@@ -137,15 +136,14 @@ async def create_wallets(new_user: UserOutModel, backup_phrase, seed):
         derivationPath=polygon_wallet_info['path'],
         lastUpdated=datetime.now().timestamp(),
         networkId=1,
-        networkName='Polygon Mainnet',
+        networkName=constants.TransactionNetworks.polygon,
         address=polygon_wallet_info['address'],
         ownerId=new_user.identifier,
-        pkHash=get_hash(polygon_wallet_info['private_key']),
+        networkDisplayName="Polygon Network",
 
     )
 
     celo_account_db = CoinWalletModelDB(
-        identifier=str(uuid4()),
         coinName='Celo',
         coinTicker='CELO',
         coinDescription="Celo",
@@ -153,10 +151,10 @@ async def create_wallets(new_user: UserOutModel, backup_phrase, seed):
         derivationPath=celo_wallet_info['path'],
         lastUpdated=datetime.now().timestamp(),
         networkId=42220,
-        networkName='Celo Mainnet',
+        networkName=constants.TransactionNetworks.celo,
+        networkDisplayName="Celo Network",
         address=celo_wallet_info['address'],
         ownerId=new_user.identifier,
-        pkHash=get_hash(celo_wallet_info['private_key']),
 
     )
 
@@ -251,7 +249,7 @@ async def get_user_wallets(logged_in_user: UserDBModel = Depends(get_logged_in_a
     return docs
 
 
-@router.post('/fetch-wallet-passphrase', response_model=WalletPhrase, description="Fetch wallet passphrase for client user. All fields are encrypted. [ Left out some fields since encryption/decryption isn't ready on client side yet ] ")
+@router.post('/retreive-passphrase', response_model=WalletPhrase, description="Fetch user's account passphrase. ")
 async def fetch_wallet_passphrase(logged_in_user: UserDBModel = Depends(get_logged_in_active_user)):
 
     exchange_keys = await get_exchange_keys_raw(logged_in_user)
@@ -266,6 +264,7 @@ async def fetch_wallet_passphrase(logged_in_user: UserDBModel = Depends(get_logg
 
         return {
             "passphrase": ecdh_encrypted_passphrase,
-            "raw_passphrase": decrypted_phrase}
+
+        }
 
     return None

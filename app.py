@@ -1,11 +1,8 @@
 from fastapi import FastAPI
-from routers import exchanges, users, wallets, security,  authentication
-# from routers.user import authenticate_user, create_access_token
-from fastapi.security import OAuth2PasswordRequestForm
-from fastapi.exceptions import HTTPException
-# from models.user import Token
+from routers import exchanges, users, wallets, security,  authentication, transactions
 from fastapi.middleware.cors import CORSMiddleware
 from config import settings
+from typing import Dict
 
 
 app = FastAPI()
@@ -17,7 +14,7 @@ origins = [
 ]
 
 
-@app.get('/ping', description='Check API server status', tags=["Check API server status"])
+@app.get('/ping', description='Check API server status', tags=["Check API server status"], response_model=Dict[str, str])
 async def ping():
     return {
         "{0}_says".format(settings.app_name): "(v1) to the Moon!"
@@ -56,6 +53,12 @@ app.include_router(
 
 
 app.include_router(
+    router=transactions.router,
+    prefix='/api/v1',
+    tags=['Transactions']
+)
+
+app.include_router(
     router=exchanges.router,
     prefix='/api/v1',
     tags=['Exchange and Conversion']
@@ -65,7 +68,7 @@ app.include_router(
 app.include_router(
     router=security.router,
     prefix='/api/v1',
-    tags=['Security [ Testing only ]']
+    tags=['Security [Testing only]']
 )
 
 
