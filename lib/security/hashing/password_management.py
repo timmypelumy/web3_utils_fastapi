@@ -21,7 +21,7 @@ def hash_with_scrypt(salt: bytes, data: bytes) -> bytes:
 
 
 def generate_password() -> bytes:
-    return os.urandom(128)
+    return os.urandom(64)
 
 
 def verify_hash_with_scrypt(salt: bytes, key: bytes, data: bytes):

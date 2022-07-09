@@ -3,10 +3,10 @@ from lib.wallets import ethereum_wallet, binance_wallet, celo_wallet, bitcoin_wa
 from fastapi import APIRouter, Depends, HTTPException
 from config import db
 from models.transactions import CreateTransactionOutputModel, TransactionInputModel, TransactionModel, AuthorizeTransactionInputModel
-from lib.security.encryption import pipeline_encryption
+from lib.security.encryption.rsa import core as core_rsa, keypair as keypair_rsa
 from dependencies.security import get_logged_in_active_user, get_exchange_keys
 from models.user import UserDBModel
-from typing import Dict
+from typing import Any, Dict
 from config import settings
 
 
@@ -46,10 +46,16 @@ async def create_new_transaction(tx_data: TransactionInputModel,  user: UserDBMo
 
 
 @router.post('/authorize')
-async def authorize_transaction(tx_info:  AuthorizeTransactionInputModel, user: UserDBModel = Depends(get_logged_in_active_user), exchange_keys: Dict[str, str] = Depends(get_exchange_keys)):
-    uid = tx_info.uid
-    passphrase = pipeline_encryption.pipeline_decrypt(
-        exchange_keys['key'].encode(), exchange_keys['peer_key'].encode(), settings.encryption_salt, ''.encode(), bytes.fromhex(tx_info.encrypted_passphrase), halfway=True)
+async def authorize_transaction(tx_info:  AuthorizeTransactionInputModel, user: UserDBModel = Depends(get_logged_in_active_user), exchange_keys: Dict = Depends(get_exchange_keys)):
+    uid = tx_info.transaction_uid
+    encrypted_passphrase = user.passphrase
+
+    keypair = keypair_rsa.load_rsa_keypair({
+        'private': exchange_keys['key'].decode(),
+        # 'public': exchange_keys['public_key']
+    })
+    decrypted_passphrase = core_rsa.decrypt_rsa(
+        keypair['private'], encrypted_passphrase.encode())
 
     tx = await db.tx_buffers.find_one({'uid': uid})
 
@@ -68,6 +74,6 @@ async def authorize_transaction(tx_info:  AuthorizeTransactionInputModel, user: 
         return None
 
 
-@router.post('/gas-station')
+@ router.post('/gas-station')
 def fetch_network_gas_fee(user: UserDBModel = Depends(get_logged_in_active_user), exchange_keys: Dict[str, str] = Depends(get_exchange_keys)):
     pass

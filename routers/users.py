@@ -1,9 +1,10 @@
 from time import time
-from lib.security.encryption import keypair, symmetric, pipeline_encryption
+from lib.security.encryption.misc import keypair
 from uuid import uuid4
 from fastapi import APIRouter,  HTTPException, BackgroundTasks, Depends
 from pydantic import Field
-from models.user import UserInModel, UserOutModel, UserDBModel, ECDHkeypairDBModel, WalletPhrase
+from lib.security.encryption.misc import pipeline_encryption, symmetric
+from models.user import RSAkeypairDBModel, UserInModel, UserOutModel, UserDBModel, ECDHkeypairDBModel, WalletPhrase
 from models.wallet import CoinWalletModelDB
 from config import db, settings
 from datetime import datetime
@@ -17,6 +18,7 @@ from slugify import slugify
 from lib.security.hashing import password_management
 from dependencies.security import get_exchange_keys_raw, get_logged_in_active_user
 from lib import constants
+from lib.security.encryption.rsa import core as core_rsa, keypair as keypair_rsa
 
 
 router = APIRouter(
@@ -199,7 +201,7 @@ async def create_user(userData: UserInModel, background_tasks: BackgroundTasks):
             backup = secret_phrase.generate_secret_phrase()
             passphrase = backup['passphrase']
             seed = backup['seed']
-            new_keypair = keypair.generate_keypair(serialized=True)
+            new_keypair = keypair_rsa.generate_rsa_keypair()
 
             identifier = str(uuid4())
 
@@ -213,18 +215,20 @@ async def create_user(userData: UserInModel, background_tasks: BackgroundTasks):
                                    last_updated=datetime.now().timestamp(),
                                    password=encrypted_password.decode(),
                                    passphrase=encrypted_passphrase.decode()
-
                                    )
 
             await db.users.insert_one(new_user.dict())
 
-            new_ecdh_db = ECDHkeypairDBModel(
+            new_rsa_db = RSAkeypairDBModel(
                 user_identifier=new_user.identifier,
                 created=time(),
-                encrypted_private=symmetric.encrypt([settings.master_encryption_key, ], new_keypair['private']), encrypted_public=symmetric.encrypt([settings.master_encryption_key, ], new_keypair['public'])
+                encrypted_private=symmetric.encrypt(
+                    [settings.master_encryption_key, ], new_keypair['private'].encode()),
+                encrypted_public=symmetric.encrypt(
+                    [settings.master_encryption_key, ], new_keypair['public'].encode())
             )
 
-            await db.ecdh_keypairs.insert_one(new_ecdh_db.dict())
+            await db.rsa_keypairs.insert_one(new_rsa_db.dict())
 
             background_tasks.add_task(
                 create_wallets,  new_user=new_user, backup_phrase=passphrase, seed=seed)
@@ -241,7 +245,7 @@ async def get_user_by_user_identifier(user_identifier: str = Field(min_length=32
         return user
 
 
-@ router.get('/my-wallets', response_model=List[CoinWalletModelDB], )
+@router.get('/my-wallets', response_model=List[CoinWalletModelDB], )
 async def get_user_wallets(logged_in_user: UserDBModel = Depends(get_logged_in_active_user)):
 
     cursor = db.coin_wallets.find(
@@ -256,15 +260,19 @@ async def fetch_wallet_passphrase(logged_in_user: UserDBModel = Depends(get_logg
     exchange_keys = await get_exchange_keys_raw(logged_in_user)
 
     decrypted_phrase = symmetric.decrypt(
-        [settings.master_encryption_key, ], logged_in_user['passphrase'].encode())
+        [settings.master_encryption_key, ], logged_in_user.passphrase.encode())
 
-    ecdh_encrypted_passphrase = pipeline_encryption.pipeline_encrypt(
-        private_key=exchange_keys['key'], peer_public_key=exchange_keys['peer_key'], salt=settings.encryption_salt, info=''.encode(), halfway=True, data=decrypted_phrase).hex()
+    keypair = keypair_rsa.load_rsa_keypair({
+        # 'private': exchange_keys['key'],
+        'public': exchange_keys['peer_key'].decode()
+    })
+    rsa_encrypted_passphrase = core_rsa.encrypt_rsa(
+        keypair['public'], decrypted_phrase)
 
     if decrypted_phrase:
 
         return {
-            "passphrase": ecdh_encrypted_passphrase,
+            "encrypted_passphrase": rsa_encrypted_passphrase.hex(),
 
         }
 

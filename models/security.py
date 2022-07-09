@@ -64,6 +64,53 @@ class AsymmetricEncryptionInputModel(BaseModel):
         allow_population_by_field_name = True
 
 
+class RSAAsymmetricEncryptionInputModel(BaseModel):
+    public_key: str = Field(alias='publicKey')
+    message: str
+
+    class Config:
+        allow_population_by_field_name = True
+
+
+class RSAAsymmetricDecryptionInputModel(BaseModel):
+    private_key: str = Field(alias='privateKey')
+    ciphertext: str
+
+    class Config:
+        allow_population_by_field_name = True
+
+
+class RSASignInputModel(BaseModel):
+    private_key: str = Field(alias='privateKey')
+    message: str
+
+    class Config:
+        allow_population_by_field_name = True
+
+
+class RSASignOutputModel(BaseModel):
+    signature: str
+
+    class Config:
+        allow_population_by_field_name = True
+
+
+class RSAVerifyInputModel(BaseModel):
+    message: str
+    signature: str
+    public_key: str = Field(alias='publicKey')
+
+    class Config:
+        allow_population_by_field_name = True
+
+
+class RSAVerifyOutputModel(BaseModel):
+    is_valid_signature: bool
+
+    class Config:
+        allow_population_by_field_name = True
+
+
 class AsymmetricDecryptionInputModel(BaseModel):
     private_key: str = Field(alias='privateKey')
     peer_public_key: str = Field(alias='peerPublicKey')
@@ -82,6 +129,13 @@ class ECDHKeyExchangeInputModel(BaseModel):
         allow_population_by_field_name = True
 
 
+class RSAKeyExchangeInputModel(BaseModel):
+    peer_public_key: str = Field(alias='peerPublicKey')
+
+    class Config:
+        allow_population_by_field_name = True
+
+
 class ECDHKeyExchangeOutputModel(BaseModel):
     peer_public_key: str = Field(alias='peerPublicKey')
     password: Union[str, None] = Field(
@@ -91,7 +145,25 @@ class ECDHKeyExchangeOutputModel(BaseModel):
         allow_population_by_field_name = True
 
 
+class RSAKeyExchangeOutputModel(BaseModel):
+    peer_public_key: str = Field(alias='peerPublicKey')
+    password: Union[str, None] = Field(
+        min_length=128, default=None, description="[Encrypted field]")
+
+    class Config:
+        allow_population_by_field_name = True
+
+
 class ECDHKeyExchangeDBModel(BaseModel):
+    peer_public_key: str = Field(alias='peerPublicKey')
+    timestamp: float = Field(gt=0)
+    client_id: str = Field(alias='clientId')
+
+    class Config:
+        allow_population_by_field_name = True
+
+
+class RSAKeyExchangeDBModel(BaseModel):
     peer_public_key: str = Field(alias='peerPublicKey')
     timestamp: float = Field(gt=0)
     client_id: str = Field(alias='clientId')

@@ -6,6 +6,7 @@ from typing import Union, Dict
 class AppSettings(BaseSettings):
     master_encryption_key: bytes = b'FVSrpDX6K9twuDINKqyr3NIhJML5Du3ksyp8Go7QS5M='
     encryption_salt: bytes = b'BVJKUIYFTDFKCUJSTDT^DE^&RIUFIJCVCUYDKUVr3NIhJML5D*&*%&&^RUIBVjvyudS5M='
+    key_encryption_key: str = "UVTYFYUFTDY%DYUIuvytrs%&^YFICGXCYIHKVJGHXTYUCJHGHXTSRT%*&&"
     app_name: str = "Beepo"
     db_url: str = 'mongodb://localhost:27017'
     api_layer_key: str = 'PZtaVnhWbgSDoy1ULZWTmomdSa89q74Z'

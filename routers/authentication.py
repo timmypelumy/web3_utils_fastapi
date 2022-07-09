@@ -1,7 +1,8 @@
 from time import time
 from fastapi import APIRouter, Query, HTTPException, Depends
 from config import db, settings
-from lib.security.encryption import pipeline_encryption, symmetric
+from lib.security.encryption.misc import symmetric
+from lib.security.encryption.rsa import core as core_rsa, keypair as keypair_rsa
 from models.security import *
 from fastapi.security import OAuth2PasswordRequestForm
 from dependencies.security import authenticate_client, generate_access_token, get_exchange_keys_raw, get_logged_in_active_user
@@ -17,20 +18,20 @@ router = APIRouter(
 )
 
 
-@router.post('/new-ecdh-session', description="Perform a new ECDH key exchange : This involves exchange of public keys between the server and the client for encrypted communication", response_model=ECDHKeyExchangeOutputModel)
-async def perform_key_exchange(body: ECDHKeyExchangeInputModel, user_identifier: str = Query(description='The `identifier` of the user requesting for a key exchange.')):
+@router.post('/new-key-exchange-session', description="Perform a new RSA key exchange : This involves exchange of public keys between the server and the client for encrypted communication", response_model=RSAKeyExchangeOutputModel)
+async def perform_key_exchange(body: RSAKeyExchangeInputModel, user_identifier: str = Query(description='The `identifier` of the user requesting for a key exchange.')):
 
-    await db.ecdh_sessions.delete_many({"client_id": user_identifier})
+    await db.key_exchange_sessions.delete_many({"client_id": user_identifier})
     exchange_keys = await get_exchange_keys_raw(logged_in_user=None, replacement_id=user_identifier, strict=False)
     user = await db.users.find_one({'identifier': user_identifier})
 
-    ecdh_session_db = ECDHKeyExchangeDBModel(
+    key_exchange_session_db = RSAKeyExchangeDBModel(
         peer_public_key=symmetric.encrypt(
             [settings.master_encryption_key, ], body.peer_public_key.encode()),
         client_id=user_identifier,
         timestamp=time()
     )
-    await db.ecdh_sessions.insert_one(ecdh_session_db.dict())
+    await db.key_exchange_sessions.insert_one(key_exchange_session_db.dict())
 
     if user['password_sent']:
         return {
@@ -41,12 +42,16 @@ async def perform_key_exchange(body: ECDHKeyExchangeInputModel, user_identifier:
         decrypted_password = symmetric.decrypt(
             [settings.master_encryption_key, ], user['password'].encode())
 
-        ecdh_encrypted_password = pipeline_encryption.pipeline_encrypt(
-            exchange_keys['key'], body.peer_public_key.encode(), salt=settings.encryption_salt, info=''.encode(), data=decrypted_password, halfway=True
-        )
+        keypair = keypair_rsa.load_rsa_keypair({
+            # 'private': exchange_keys['key'],
+            'public': exchange_keys['peer_key'].decode()
+        })
+        rsa_encrypted_password = core_rsa.encrypt_rsa(
+            keypair['public'], decrypted_password)
+
         return {
             "peer_public_key": exchange_keys['public_key'],
-            "password": ecdh_encrypted_password.hex()
+            "password": rsa_encrypted_password.hex()
         }
 
 
@@ -55,8 +60,13 @@ async def login_for_access_token(form: OAuth2PasswordRequestForm = Depends()):
 
     exchange_keys = await get_exchange_keys_raw(logged_in_user=None, replacement_id=form.username)
 
-    decrypted_password = pipeline_encryption.pipeline_decrypt(
-        exchange_keys['key'], exchange_keys['peer_key'], salt=settings.encryption_salt, info=''.encode(), cipher=bytes.fromhex(form.password), halfway=True)
+    keypair = keypair_rsa.load_rsa_keypair({
+        'private': exchange_keys['key'].decode(),
+        # 'public': exchange_keys['public_key']
+    })
+
+    decrypted_password = core_rsa.decrypt_rsa(
+        keypair['private'], bytes.fromhex(form.password))
 
     user = await authenticate_client(form.username, decrypted_password)
 
@@ -76,7 +86,6 @@ async def login_for_access_token(form: OAuth2PasswordRequestForm = Depends()):
 
     return {
         "access_token": encrypted_access_token,
-        "access_token_unencrypted": access_token,
         'token_type': 'bearer'
 
     }

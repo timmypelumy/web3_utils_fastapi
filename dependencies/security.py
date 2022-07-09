@@ -6,7 +6,7 @@ from datetime import timedelta, datetime
 from fastapi.security import OAuth2PasswordBearer
 from fastapi import HTTPException, Depends
 from models.user import UserDBModel
-from lib.security.encryption import symmetric
+from lib.security.encryption.misc import symmetric
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/api/v1/auth/login')
@@ -88,18 +88,18 @@ async def get_exchange_keys_raw(logged_in_user:  Union[None, UserDBModel], stric
 
     user_id = replacement_id if replacement_id else logged_in_user.identifier
 
-    server_ecdh = await db.ecdh_keypairs.find_one({"user_identifier": user_id})
+    server_rsa = await db.rsa_keypairs.find_one({"user_identifier": user_id})
 
-    if not server_ecdh:
+    if not server_rsa:
         # print("NO ECDH PAIR")
-        raise HTTPException(status_code=404, detail='ECDH keypair not found')
+        raise HTTPException(status_code=404, detail='RSA keypair not found')
 
-    user_ecdh_session = await db.ecdh_sessions.find_one({"client_id": user_id})
+    user_rsa_session = await db.key_exchange_sessions.find_one({"client_id": user_id})
 
-    if not user_ecdh_session and strict:
+    if not user_rsa_session and strict:
         # print("NO ECDH SESSION")
         raise HTTPException(
-            status_code=404, detail='No ECDH key exchange session  found')
+            status_code=404, detail='No RSA key exchange session  found')
 
     decrypted_peer_public_key = None
     decrypted_private_key = None
@@ -107,13 +107,13 @@ async def get_exchange_keys_raw(logged_in_user:  Union[None, UserDBModel], stric
 
     if strict:
         decrypted_peer_public_key = symmetric.decrypt(
-            [settings.master_encryption_key, ], user_ecdh_session['peer_public_key'].encode())
+            [settings.master_encryption_key, ], user_rsa_session['peer_public_key'].encode())
 
     decrypted_private_key = symmetric.decrypt(
-        [settings.master_encryption_key, ], server_ecdh['encrypted_private'].encode())
+        [settings.master_encryption_key, ], server_rsa['encrypted_private'].encode())
 
     decrypted_public_key = symmetric.decrypt(
-        [settings.master_encryption_key, ], server_ecdh['encrypted_public'].encode())
+        [settings.master_encryption_key, ], server_rsa['encrypted_public'].encode())
 
     return {
         "peer_key": decrypted_peer_public_key,

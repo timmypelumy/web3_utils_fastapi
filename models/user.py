@@ -51,15 +51,24 @@ class ECDHkeypairDBModel(BaseModel):
         allow_population_by_field_name = True
 
 
+class RSAkeypairDBModel(BaseModel):
+    user_identifier: str = Field(alias='ownerIdentifier',
+                                 description="Identifier of user which the pair belongs to",)
+    encrypted_private: str = Field(alias='encryptedPrivate')
+    encrypted_public: str = Field(alias='encryptedPublic')
+    created: float
+
+    class Config:
+        allow_population_by_field_name = True
+
+
 class Token(BaseModel):
     token_type: str = Field(alias='tokenType')
     access_token: str = Field(alias='accessToken')
 
 
 class WalletPhrase(BaseModel):
-    passphrase: str = Field(description="[Encrypted field]")
-    raw_passphrase: Union[str, None] = Field(default=None,
-                                             description="Unencrypted passphrase, will be removed in production.", alias='rawPassphrase')
+    encrypted_passphrase: str = Field(description="[Encrypted field]")
 
     class Config:
         allow_population_by_field_name = True
