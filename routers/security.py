@@ -99,9 +99,9 @@ def rsa_asymmetric_decryption(body: RSAAsymmetricDecryptionInputModel):
     ciphertext = bytes.fromhex(body.ciphertext)
 
     message = decrypt_rsa(keypair['private'], ciphertext)
-
+    print(message)
     return {
-        'data': message
+        'data': message.decode()
     }
 
 

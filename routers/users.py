@@ -206,7 +206,7 @@ async def create_user(userData: UserInModel, background_tasks: BackgroundTasks):
             identifier = str(uuid4())
 
             encrypted_password = symmetric.encrypt(
-                [settings.master_encryption_key, ], data=password_management.generate_password())
+                [settings.master_encryption_key, ], data=password_management.generate_password().encode())
             encrypted_passphrase = symmetric.encrypt(
                 [settings.master_encryption_key, ], data=passphrase.encode())
 

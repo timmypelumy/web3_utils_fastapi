@@ -44,7 +44,7 @@ async def perform_key_exchange(body: RSAKeyExchangeInputModel, user_identifier: 
 
         keypair = keypair_rsa.load_rsa_keypair({
             # 'private': exchange_keys['key'],
-            'public': exchange_keys['peer_key'].decode()
+            'public': body.peer_public_key
         })
         rsa_encrypted_password = core_rsa.encrypt_rsa(
             keypair['public'], decrypted_password)
@@ -66,7 +66,7 @@ async def login_for_access_token(form: OAuth2PasswordRequestForm = Depends()):
     })
 
     decrypted_password = core_rsa.decrypt_rsa(
-        keypair['private'], bytes.fromhex(form.password))
+        keypair['private'],  bytes.fromhex(form.password))
 
     user = await authenticate_client(form.username, decrypted_password)
 
