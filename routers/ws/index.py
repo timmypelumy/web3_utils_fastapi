@@ -1,5 +1,5 @@
 from fastapi import APIRouter, WebSocket
-from .wallets import router as walletRouter
+from ..wallets import router as walletRouter
 
 
 router = APIRouter(

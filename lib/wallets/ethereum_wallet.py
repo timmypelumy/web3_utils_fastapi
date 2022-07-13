@@ -1,5 +1,6 @@
 import math
 from eth_account import Account
+from hexbytes import HexBytes
 from web3 import Web3
 from config import settings
 from typing import Dict
@@ -56,18 +57,18 @@ def fetch_gas_oracle():
                 'base_fee': suggest_base_fee,
 
                 'safe': {
-                    'value': safe_gas_price + suggest_base_fee,
+                    'value': safe_gas_price,
                     'time': 180,
                 },
 
                 'propose': {
-                    'value': propose_gas_price + suggest_base_fee,
+                    'value': propose_gas_price,
                     'time': 180,
                 },
 
                 'fast': {
 
-                    'value': fast_gas_price + suggest_base_fee,
+                    'value': fast_gas_price,
                     'time': 30,
                 }
             }
@@ -77,27 +78,6 @@ def fetch_gas_oracle():
 
     else:
         raise HTTPException(status_code=500)
-
-
-def sign_ethereum_transaction(tx: Dict, passphrase: str):
-    account = generate_ethereum_wallet(passphrase)
-    web3 = create_http_web3((settings.chain_nodes[NETWORK_ID])['http'])
-    web3.eth.default_account = account['address']
-
-    signed_transaction = web3.eth.account.sign_transaction(dict(
-        nonce=tx['nonce'],
-        maxFeePerGas=3000000000,
-        maxPriorityFeePerGas=2000000000,
-        gas=100000,
-        to=tx['to_address'],
-        value=tx['value'],
-        data=b'',
-        chainId=NETWORK_ID,
-    ),
-        account['private_key']
-    )
-
-    return signed_transaction
 
 
 def get_balance(address: str):
@@ -113,3 +93,40 @@ def is_valid_address(address: str):
     web3 = Web3()
 
     return web3.isChecksumAddress(address)
+
+
+def send_ethereum_transaction(tx: Dict, passphrase: str) -> HexBytes:
+    if not passphrase:
+        raise ValueError("Passphrase argument is required!")
+
+    gas_metrics = fetch_gas_oracle()
+
+    account = generate_ethereum_wallet(passphrase=passphrase)
+
+    from_address = tx['from_address']
+    to_address = tx['to_address']
+    value = tx['value']
+
+    if account['address'] != from_address:
+        raise ValueError("Address from passphrase does not match with supplied address, {0} != {1}".format(
+            account['address'], from_address))
+
+    web3 = create_http_web3(settings.chain_nodes[NETWORK_ID]['http'])
+    web3.eth.default_account = from_address
+
+    signed_tx = web3.eth.account.sign_transaction({
+        'to': to_address,
+        'from': from_address,
+        'value': web3.toWei(value, 'ether'),
+        'chainId': NETWORK_ID,
+        'nonce': web3.eth.get_transaction_count(from_address),
+        'gas': web3.eth.estimate_gas({'to': to_address, 'from': from_address, 'value': web3.toWei(value, 'ether')}),
+        'maxFeePerGas':  gas_metrics['fast']['value'] + gas_metrics['base_fee'],
+        'maxPriorityFeePerGas': gas_metrics['fast']['value']
+
+
+    }, account['private_key'])
+
+    tx_hash = web3.eth.send_raw_transaction(signed_tx.rawTransaction)
+
+    return tx_hash

@@ -8,16 +8,15 @@ from typing import Union
 
 
 class CreateTransactionInputModel(BaseModel):
-    network_name: constants.TransactionNetworks = Field(
-        alias='networkName', description="Network to place the transaction on e.g Ethereum, Celo.")
+    network_name:  constants.TransactionNetworks = Field(
+        alias='networkName', description="Network the transaction took place on e.g Ethereum, Celo.")
     value: float = Field(ge=0)
+    to_user_id: UUID = Field(alias='toUserId')
     is_contract_call: bool = Field(default=False, alias='isContractCall')
     from_address: str = Field(alias='fromAddress')
     to_address: str = Field(alias='toAddress')
-    to_user_id: UUID = Field(alias='toUserId')
     unit: constants.NetworkSubunits
-    passphrase: str = Field(
-        min_length=24, description='User passphrase, needed to sign transactions. [Encrypted] ')
+    from_user_id: Union[UUID, None] = Field(alias='fromUserId', default=None)
 
     @validator('to_address', 'from_address', always=True)
     def is_valid_address(cls, v, values):
@@ -49,8 +48,8 @@ class CreateTransactionInputModel(BaseModel):
 class CreateTransactionOutputModel(BaseModel):
     network_name:  constants.TransactionNetworks = Field(
         alias='networkName', description="Network to place the transaction on e.g Ethereum, Celo.")
-    transaction_uid: UUID = Field(description="Unique identifier ",
-                                  default_factory=get_uuid4, alias='transactionUid')
+    tx_uid: UUID = Field(
+        description="Transaction unique identifier ", alias='txUid')
 
     class Config:
         allow_population_by_field_name = True
@@ -59,8 +58,24 @@ class CreateTransactionOutputModel(BaseModel):
         use_enum_values = True
 
 
-class AuthorizeTransactionInputModel(CreateTransactionOutputModel):
-    pass
+class AuthorizeTransactionInputModel(BaseModel):
+    tx_uid: UUID = Field(
+        description="Transaction unique identifier ", alias='txUid')
+    encrypted_passphrase: str = Field(alias='encryptedPassphrase',
+                                      min_length=24, description='User Passphrase, needed to sign transactions. [Encrypted] ')
+
+    class Config:
+        allow_population_by_field_name = True
+        arbitrary_types_allowed = True
+        json_encoders = {UUID: lambda v: str(v)}
+        use_enum_values = True
+
+
+class AuthorizeTransactionOutputModel(BaseModel):
+
+    tx_hash: str = Field(alias='txHash')
+    tx_uid: UUID = Field(alias='txUid')
+    network_name: constants.TransactionNetworks = Field(alias='networkName')
 
     class Config:
         allow_population_by_field_name = True
@@ -130,7 +145,8 @@ class TransactionModel(BaseTransactionModel):
 
 
 class TransactionInputModel(BaseTransactionModel):
-    is_authorized: bool = Field(default=False, alias='isAuthorized')
+    is_authorized: bool = Field(
+        default=False, alias='isAuthorized')
     has_expired: bool = Field(default=False, alias='hasExpired')
     from_user_id: Union[UUID, None] = Field(alias='fromUserId', default=None)
 
