@@ -35,7 +35,7 @@ The authentication layer follows the `Open Authentication (OAuth) ` standard. Th
 
 The data encryption layer ensures security and privacy of data on the server and also in transit between the server and the client. **Symmetric encryption** is used to store data safely on th server, the details of the implementation is irrelevant to the client. **Asymmetric encryption** is used for securing data in transit between the server and the client. **Asymmetric encryption** employs the use of **public and private keys** in encrypting and decrypting data.
   
-  The **Key Exchange Algorithm** type used in this project is the [***Elliptic Curve Diffie-Hellman***](https://cryptography.io/en/latest/hazmat/primitives/asymmetric/x25519/) algorithm. It works thus:
+  The **Encryption Algorithm** type used in this project is the [***Rivest Shamir Adleman (RSA) public key encryption***](https://cryptography.io/en/latest/hazmat/primitives/asymmetric/rsa/) algorithm. It works thus:
   
   1. The server and client each generate a public/private keypair on their own end.
   
@@ -43,9 +43,9 @@ The data encryption layer ensures security and privacy of data on the server and
   
   3. The server and the client exchange their public key with each other.
   
-  4. The server and client compute a shared key through a preset key generation algorithm independently on their end using their **private key** and the **peer public key**. **Peer public key** refers to the public key of the other party. The **shared key** computed will be the same for the server and client hence the name ***shared key***, however, this **shared key** is never stored, it is compute at will using the **private key** and **peer public key** when it is needed for encryption/decryption.
+  4. Encryption is done on either end by using the **public key** of the peer ( `peer_public_key` ) to encrypt data. The data is then sent to this peer.
   
-  5. Once the exchange is complete, data is encrypted and decrypted using ***AES*** encryption. The client encrypts, the server decrypts and vice-versa. The form of **AES** used will not be disclosed here.
+  5. The peer then uses their own private key to decrypt the data into a meaning state.
   
   <br/>
   
