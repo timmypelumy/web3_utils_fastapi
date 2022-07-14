@@ -1,77 +1,29 @@
 from eth_account import Account
 from config import settings
+from .ethereum_wallet import fetch_gas_oracle
 from typing import Dict
-from config import settings
-from requests import request
-from fastapi import HTTPException
 from .web3_utils import create_http_web3
 
-ETHEREUM_DERIVATION_PATH = "m/44'/60'/0'/0/0"
-NETWORK_ID = 3
+
+POLYGON_DERIVATION_PATH = "m/44'/60'/0'/0/0"
+NETWORK_ID = 137
 
 
-def generate_ropsten_wallet(passphrase, username=None):
+def generate_polygon_mumbai_wallet(passphrase, username=None):
     if not passphrase:
         raise ValueError("Passphrase argument is required!")
 
     Account.enable_unaudited_hdwallet_features()
     account = Account.from_mnemonic(
-        passphrase,  account_path=ETHEREUM_DERIVATION_PATH)
+        passphrase,  account_path=POLYGON_DERIVATION_PATH)
 
     account_info = {
         'private_key': account.key.hex(),
         "address": account.address,
-        'path': ETHEREUM_DERIVATION_PATH,
+        'path': POLYGON_DERIVATION_PATH,
     }
 
     return account_info
-
-
-def fetch_gas_oracle():
-    url = "https://api.etherscan.io/api?module=gastracker&action=gasoracle&apikey={0}".format(
-        settings.etherscan_key)
-
-    response = request("GET", url)
-
-    if response.ok:
-
-        data = response.json()
-
-        if data['status'] == '1':
-            gas_data = data['result']
-            suggest_base_fee = float(gas_data['suggestBaseFee'])
-
-            safe_gas_price = float(gas_data['SafeGasPrice'])
-            propose_gas_price = float(
-                gas_data['ProposeGasPrice'])
-            fast_gas_price = float(gas_data['FastGasPrice'])
-
-            return {
-
-                'base_fee': suggest_base_fee,
-
-                'safe': {
-                    'value': safe_gas_price,
-                    'time': 180,
-                },
-
-                'propose': {
-                    'value': propose_gas_price,
-                    'time': 180,
-                },
-
-                'fast': {
-
-                    'value': fast_gas_price,
-                    'time': 30,
-                }
-            }
-
-        else:
-            return None
-
-    else:
-        raise HTTPException(status_code=500)
 
 
 def get_balance(address: str):
@@ -81,13 +33,13 @@ def get_balance(address: str):
     return balance
 
 
-def send_ropsten_transaction(tx: Dict, passphrase: str) -> Dict:
+def send_polygon_mumbai_transaction(tx: Dict, passphrase: str) -> Dict:
     if not passphrase:
         raise ValueError("Passphrase argument is required!")
 
     gas_metrics = fetch_gas_oracle()
 
-    account = generate_ropsten_wallet(passphrase=passphrase)
+    account = generate_polygon_mumbai_wallet(passphrase=passphrase)
 
     from_address = tx['from_address']
     to_address = tx['to_address']

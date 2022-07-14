@@ -1,6 +1,6 @@
 from eth_account import Account
-from web3 import Web3
 from config import settings
+from .web3_utils import create_http_web3
 
 CELO_DERIVATION_PATH = "m/44'/52752'/0'/0"
 NETWORK_ID = 42220
@@ -23,15 +23,7 @@ def generate_celo_wallet(passphrase, username=None):
 
 
 def get_balance(address: str):
-    provider = Web3.HTTPProvider((settings.chain_nodes[NETWORK_ID])['http'])
-    web3 = Web3(provider)
-
+    web3 = create_http_web3((settings.chain_nodes[NETWORK_ID])['http'])
     balance = web3.eth.get_balance(address)
 
     return balance
-
-
-def is_valid_address(address: str):
-    web3 = Web3()
-
-    return web3.isChecksumAddress(address)

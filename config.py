@@ -49,6 +49,22 @@ class AppSettings(BaseSettings):
         3: {
             'http': 'https://rpc.ankr.com/eth_ropsten',
             'ws': ''
+        },
+
+        97: {
+
+            'http': 'https://data-seed-prebsc-1-s3.binance.org:8545',
+            'ws': ''
+        },
+
+        44787: {
+            'http': 'https://data-seed-prebsc-1-s3.binance.org:8545',
+            'ws': ''
+        },
+
+        80001: {
+            'http': 'https://matic-testnet-archive-rpc.bwarelabs.com',
+            'ws': ''
         }
 
     }

@@ -1,5 +1,5 @@
 from lib import constants
-from lib.wallets import ethereum_wallet, binance_wallet, celo_wallet, bitcoin_wallet, polygon_wallet, litecoin_wallet, ropsten_wallet
+from lib.wallets import ethereum_wallet, binance_wallet, celo_wallet, bitcoin_wallet, polygon_wallet, litecoin_wallet, ropsten_wallet, binance_testnet_wallet
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from config import db
 from models.transactions import AuthorizeTransactionOutputModel, CreateTransactionInputModel, CreateTransactionOutputModel, TransactionInputModel, TransactionModel, AuthorizeTransactionInputModel
@@ -16,6 +16,17 @@ router = APIRouter(
         404: {"description": "Resource does not exist"}
     }
 )
+
+
+async def initiate_transaction(task, tx_uid, raw_tx):
+
+    try:
+        task(raw_tx)
+    except Exception as e:
+        print(e)
+
+    else:
+        await db.tx_buffers.update_one({'uid': tx_uid}, {'$set': {'is_authorized': True}})
 
 
 @router.post('/create', response_model=CreateTransactionOutputModel, )
@@ -85,12 +96,14 @@ async def authorize_transaction(tx_info:  AuthorizeTransactionInputModel,  backg
             task = ethereum_wallet.send_ethereum_transaction
         elif network == constants.TransactionNetworks.ropsten:
             task = ropsten_wallet.send_ropsten_transaction
+        elif network == constants.TransactionNetworks.binance_testnet:
+            task = binance_testnet_wallet.send_binance_testnet_transaction
 
         if task:
             task_result = task(tx=tx, passphrase=decrypted_passphrase)
 
-            background_tasks.add_task(
-                task_result['send_transaction'], task_result['raw_tx'])
+            background_tasks.add_task(initiate_transaction, tx_uid=uid,
+                                      task=task_result['send_transaction'], raw_tx=task_result['raw_tx'])
 
             return {
                 'tx_uid': uid,
@@ -101,6 +114,6 @@ async def authorize_transaction(tx_info:  AuthorizeTransactionInputModel,  backg
             raise HTTPException(status_code=403, detail="Invalid network")
 
 
-@ router.post('/gas-station')
+@router.post('/gas-station')
 def fetch_network_gas_fee(user: UserDBModel = Depends(get_logged_in_active_user), exchange_keys: Dict[str, str] = Depends(get_exchange_keys)):
     pass

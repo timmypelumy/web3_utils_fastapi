@@ -1,6 +1,8 @@
 from eth_account import Account
-from web3 import Web3
 from config import settings
+from typing import Dict
+from .ethereum_wallet import fetch_gas_oracle
+from .web3_utils import create_http_web3
 
 BINANCE_DERIVATION_PATH = "m/44'/60'/0'/0/0"
 NETWORK_ID = 56
@@ -24,15 +26,46 @@ def generate_binance_wallet(passphrase, username=None):
 
 
 def get_balance(address: str):
-    provider = Web3.HTTPProvider((settings.chain_nodes[NETWORK_ID])['http'])
-    web3 = Web3(provider)
-
+    web3 = create_http_web3((settings.chain_nodes[NETWORK_ID])['http'])
     balance = web3.eth.get_balance(address)
 
     return balance
 
 
-def is_valid_address(address: str):
-    web3 = Web3()
+def send_binance_transaction(tx: Dict, passphrase: str) -> Dict:
+    if not passphrase:
+        raise ValueError("Passphrase argument is required!")
 
-    return web3.isChecksumAddress(address)
+    gas_metrics = fetch_gas_oracle()
+
+    account = generate_binance_wallet(passphrase=passphrase)
+
+    from_address = tx['from_address']
+    to_address = tx['to_address']
+    value = tx['value']
+
+    if account['address'] != from_address:
+        raise ValueError("Address from passphrase does not match with supplied address, {0} != {1}".format(
+            account['address'], from_address))
+
+    web3 = create_http_web3(settings.chain_nodes[NETWORK_ID]['http'])
+    web3.eth.default_account = from_address
+
+    signed_tx = web3.eth.account.sign_transaction({
+        'to': to_address,
+        'from': from_address,
+        'value': web3.toWei(value, 'ether'),
+        'chainId': NETWORK_ID,
+        'nonce': web3.eth.get_transaction_count(from_address),
+        'gas': web3.eth.estimate_gas({'to': to_address, 'from': from_address, 'value': web3.toWei(value, 'ether')}),
+        'maxFeePerGas': web3.toWei(gas_metrics['fast']['value'] + gas_metrics['base_fee'], 'gwei'),
+        'maxPriorityFeePerGas': web3.toWei(gas_metrics['fast']['value'], 'gwei')
+
+
+    }, account['private_key'])
+
+    return {
+        'tx_hash': signed_tx.hash.hex(),
+        'send_transaction': web3.eth.send_raw_transaction,
+        'raw_tx': signed_tx.rawTransaction
+    }

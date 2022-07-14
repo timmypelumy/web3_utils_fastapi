@@ -1,5 +1,5 @@
 from time import time
-from fastapi import APIRouter, Query, HTTPException, Depends
+from fastapi import APIRouter, Body, Query, HTTPException, Depends
 from config import db, settings
 from lib.security.encryption.misc import symmetric
 from lib.security.encryption.rsa import core as core_rsa, keypair as keypair_rsa
@@ -8,6 +8,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from dependencies.security import authenticate_client, generate_access_token, get_exchange_keys_raw, get_logged_in_active_user
 from models.user import UserDBModel, UserOutModel
 from lib.security.hashing import password_management
+from requests import request
 
 
 router = APIRouter(
@@ -94,3 +95,50 @@ async def login_for_access_token(form: OAuth2PasswordRequestForm = Depends()):
 @router.post('/fetch-current-user', description="Fetch the currently logged in user.", response_model=UserOutModel)
 def fetch_current_user(logged_in_user: UserDBModel = Depends(get_logged_in_active_user)):
     return logged_in_user
+
+
+@router.post('/handshake', description='🚩 Testing Only - Not for client usage.')
+def handshake(public_key: str = Body(), private_key: str = Body(), user_id: str = Query()):
+
+    url = "http://localhost:8000/api/v1/auth/new-key-exchange-session?user_identifier={0}".format(
+        user_id)
+    data = {
+        "peerPublicKey": public_key,
+    }
+
+    response = request("POST", url, json=data)
+
+    if response.ok:
+
+        json_data = response.json()
+
+        # print("\n\n\n\n DATA : ", json_data, '\n\n\n')
+
+        encrypted_password = json_data['password']
+
+        peer_public_key = json_data['peerPublicKey']
+
+        keypair = keypair_rsa.load_rsa_keypair({
+            'private': private_key,
+            'public': public_key
+        })
+
+        peer_keypair = keypair_rsa.load_rsa_keypair({
+            'public': peer_public_key
+        })
+
+        decrypted_password = core_rsa.decrypt_rsa(
+            keypair['private'], bytes.fromhex(encrypted_password))
+
+        reencrypted_password = core_rsa.encrypt_rsa(
+            peer_keypair['public'], decrypted_password)
+
+        return {
+            'password': reencrypted_password.hex(),
+            'user_id': user_id
+        }
+
+    else:
+        print("EXTERNAL REQ ERROR")
+        raise HTTPException(
+            status_code=response.status_code, detail=response.text)

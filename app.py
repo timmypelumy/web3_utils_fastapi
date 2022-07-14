@@ -11,6 +11,7 @@ origins = [
     settings.client_url,
     settings.heroku_app_url,
     'localhost:3000'
+    'http://localhost:8000'
 ]
 
 
