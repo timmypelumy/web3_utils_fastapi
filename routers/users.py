@@ -1,30 +1,29 @@
 from time import time
-from lib.security.encryption.misc import keypair
 from uuid import uuid4
-from fastapi import APIRouter,  HTTPException, BackgroundTasks, Depends
+from fastapi import APIRouter,  HTTPException, BackgroundTasks, Depends, Query
 from pydantic import Field
-from lib.security.encryption.misc import pipeline_encryption, symmetric
-from models.user import RSAkeypairDBModel, UserInModel, UserOutModel, UserDBModel, ECDHkeypairDBModel, WalletPhrase
+from models.user import RSAkeypairDBModel, UserInModel, UserOutModel, UserDBModel, WalletPhrase
 from models.wallet import CoinWalletModelDB
 from config import db, settings
 from datetime import datetime
 from datetime import datetime
 from uuid import uuid4
-from lib.wallets import bitcoin_wallet, secret_phrase, litecoin_wallet, ethereum_wallet, celo_wallet, polygon_wallet, binance_wallet
+from lib.wallets import bitcoin_wallet, secret_phrase, litecoin_wallet, ethereum_wallet, celo_wallet, polygon_wallet, binance_wallet, ropsten_wallet
 from passlib.context import CryptContext
-from typing import List
 from nanoid import generate
 from slugify import slugify
 from lib.security.hashing import password_management
 from dependencies.security import get_exchange_keys_raw, get_logged_in_active_user
 from lib import constants
 from lib.security.encryption.rsa import core as core_rsa, keypair as keypair_rsa
+from lib.security.encryption.fernet.core import encrypt as fernet_encrypt, decrypt as fernet_decrypt
+from typing import List
 
 
 router = APIRouter(
     prefix='/users',
     responses={
-        404: {"description": "User does not exist"}
+        404: {"description": "This path does not exist in router `users` "}
     }
 )
 
@@ -62,6 +61,11 @@ async def create_wallets(new_user: UserOutModel, backup_phrase, seed):
         backup_phrase, new_user.username)
 
     celo_wallet_info = celo_wallet.generate_celo_wallet(
+        backup_phrase, new_user.username)
+
+    # TEST WALLETS
+
+    ropsten_wallet_info = ropsten_wallet.generate_ropsten_wallet(
         backup_phrase, new_user.username)
 
     # solana_wallet_info = solana_wallet.generate_solana_wallet(
@@ -161,6 +165,25 @@ async def create_wallets(new_user: UserOutModel, backup_phrase, seed):
 
     )
 
+    # TEST NETS
+
+    ropsten_account_db = CoinWalletModelDB(
+        coinName='Ether(r)',
+        coinTicker='ETH(r)',
+        coinDescription="Ropsten Ethereum",
+        created=datetime.now().timestamp(),
+        derivationPath=ropsten_wallet_info['path'],
+        lastUpdated=datetime.now().timestamp(),
+        networkId=3,
+        networkName=constants.TransactionNetworks.ropsten,
+        address=ropsten_wallet_info['address'],
+        ownerId=new_user.identifier,
+        networkDisplayName="Ropsten Network",
+        is_testnet=True
+
+
+    )
+
     # solana_account_db = CoinWalletModelDB(
     #     identifier=str(uuid4()),
     #     coinName='Solana',
@@ -184,7 +207,11 @@ async def create_wallets(new_user: UserOutModel, backup_phrase, seed):
         binance_account_db.dict(),
         ethereum_account_db.dict(),
         celo_account_db.dict(),
-        polygon_account_db.dict()
+        polygon_account_db.dict(),
+
+        # TEST NETS
+
+        ropsten_account_db.dict()
 
     ])
 
@@ -205,9 +232,9 @@ async def create_user(userData: UserInModel, background_tasks: BackgroundTasks):
 
             identifier = str(uuid4())
 
-            encrypted_password = symmetric.encrypt(
+            encrypted_password = fernet_encrypt(
                 [settings.master_encryption_key, ], data=password_management.generate_password().encode())
-            encrypted_passphrase = symmetric.encrypt(
+            encrypted_passphrase = fernet_encrypt(
                 [settings.master_encryption_key, ], data=passphrase.encode())
 
             new_user = UserDBModel(**data, identifier=identifier,
@@ -222,9 +249,9 @@ async def create_user(userData: UserInModel, background_tasks: BackgroundTasks):
             new_rsa_db = RSAkeypairDBModel(
                 user_identifier=new_user.identifier,
                 created=time(),
-                encrypted_private=symmetric.encrypt(
+                encrypted_private=fernet_encrypt(
                     [settings.master_encryption_key, ], new_keypair['private'].encode()),
-                encrypted_public=symmetric.encrypt(
+                encrypted_public=fernet_encrypt(
                     [settings.master_encryption_key, ], new_keypair['public'].encode())
             )
 
@@ -236,21 +263,22 @@ async def create_user(userData: UserInModel, background_tasks: BackgroundTasks):
             return new_user
 
 
-@ router.get('/{user_identifier}', response_model=UserOutModel)
-async def get_user_by_user_identifier(user_identifier: str = Field(min_length=32, max_length=48)):
+@router.get('/fetch-user', response_model=UserOutModel)
+async def fetch_user_by_user_identifier(user_identifier: str = Query(min_length=32, max_length=48)):
     user = await db.users.find_one({'identifier': user_identifier})
     if not user:
-        raise HTTPException(status_code=404, detail='User does not exist.')
+        raise HTTPException(
+            status_code=404, detail='User with ID {0} does not exist'.format(user_identifier))
     else:
         return user
 
 
-@router.get('/my-wallets', response_model=List[CoinWalletModelDB], )
-async def get_user_wallets(logged_in_user: UserDBModel = Depends(get_logged_in_active_user)):
+@router.get('/fetch-wallets', response_model=List[CoinWalletModelDB], )
+async def fetch_user_wallets(logged_in_user: UserDBModel = Depends(get_logged_in_active_user)):
 
     cursor = db.coin_wallets.find(
         {'ownerId': logged_in_user.identifier}).sort('network_name', 1)
-    docs = await cursor.to_list(length=6)
+    docs = await cursor.to_list(length=100)
     return docs
 
 
@@ -259,7 +287,7 @@ async def fetch_wallet_passphrase(logged_in_user: UserDBModel = Depends(get_logg
 
     exchange_keys = await get_exchange_keys_raw(logged_in_user)
 
-    decrypted_phrase = symmetric.decrypt(
+    decrypted_phrase = fernet_decrypt(
         [settings.master_encryption_key, ], logged_in_user.passphrase.encode())
 
     keypair = keypair_rsa.load_rsa_keypair({

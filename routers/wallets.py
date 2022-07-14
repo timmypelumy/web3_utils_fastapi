@@ -4,7 +4,7 @@ from config import settings
 from web3 import Web3
 from time import sleep
 from models.wallet import FetchBalanceInputModel, FetchBalanceOutputModel
-from lib.wallets import celo_wallet, polygon_wallet, ethereum_wallet, bitcoin_wallet, litecoin_wallet, binance_wallet
+from lib.wallets import celo_wallet, polygon_wallet, ethereum_wallet, bitcoin_wallet, litecoin_wallet, binance_wallet, ropsten_wallet
 from lib import constants
 
 
@@ -70,7 +70,6 @@ async def fetch_wallet_balance(body: FetchBalanceInputModel = Body()):
 
     if network_name.lower() == constants.LITECOIN_MAINNET:
         balance = litecoin_wallet.get_balance(address)
-        print(balance)
         return {
             'balance': balance,
             'networkName': 'litecoin',
@@ -81,13 +80,22 @@ async def fetch_wallet_balance(body: FetchBalanceInputModel = Body()):
 
     if network_name.lower() == constants.BITCOIN_MAINNET:
         balance = bitcoin_wallet.get_balance(address)
-        print(balance)
         return {
 
             'balance': balance,
             'networkName': 'bitcoin',
             'address': address,
             'denomination': 'satoshi'
+        }
+
+    if network_name.lower() == constants.ROPSTEN_TESTNET:
+        balance = ropsten_wallet.get_balance(address)
+        return {
+
+            'balance': balance,
+            'networkName': 'ropsten',
+            'address': address,
+            'denomination': 'wei'
         }
 
     # print(balance, network_name)

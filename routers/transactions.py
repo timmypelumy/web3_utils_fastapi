@@ -1,5 +1,5 @@
 from lib import constants
-from lib.wallets import ethereum_wallet, binance_wallet, celo_wallet, bitcoin_wallet, polygon_wallet, litecoin_wallet
+from lib.wallets import ethereum_wallet, binance_wallet, celo_wallet, bitcoin_wallet, polygon_wallet, litecoin_wallet, ropsten_wallet
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from config import db
 from models.transactions import AuthorizeTransactionOutputModel, CreateTransactionInputModel, CreateTransactionOutputModel, TransactionInputModel, TransactionModel, AuthorizeTransactionInputModel
@@ -67,28 +67,37 @@ async def authorize_transaction(tx_info:  AuthorizeTransactionInputModel,  backg
     else:
 
         if tx['from_user_id'] != user.identifier:
-            raise HTTPException(status_code=403, detail="Invalid operation")
+            raise HTTPException(
+                status_code=403, detail="Current user and Transaction `from_user_id` field do not match")
+
+        if tx['is_authorized']:
+            raise HTTPException(
+                status_code=403, detail='Transaction already authorized')
+
+        if tx['has_expired']:
+            raise HTTPException(
+                status_code=403, detail='Transaction has expired')
 
         task = None
         network = tx['network_name']
 
-        if network == constants.ETHEREUM_MAINNET:
-            # task = ethereum_wallet.send_ethereum_transaction
+        if network == constants.TransactionNetworks.ethereum:
+            task = ethereum_wallet.send_ethereum_transaction
+        elif network == constants.TransactionNetworks.ropsten:
+            task = ropsten_wallet.send_ropsten_transaction
 
-            # background_tasks.add_task(
-            #     task, passphrase=decrypted_passphrase, tx=tx)
+        if task:
+            task_result = task(tx=tx, passphrase=decrypted_passphrase)
 
-            tx_hash = ethereum_wallet.send_ethereum_transaction(
-                tx, passphrase=decrypted_passphrase)
+            background_tasks.add_task(
+                task_result['send_transaction'], task_result['raw_tx'])
 
             return {
                 'tx_uid': uid,
                 'network_name': network,
-                'tx_hash': tx_hash
+                'tx_hash': task_result['tx_hash']
             }
-
         else:
-
             raise HTTPException(status_code=403, detail="Invalid network")
 
 

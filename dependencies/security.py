@@ -6,7 +6,7 @@ from datetime import timedelta, datetime
 from fastapi.security import OAuth2PasswordBearer
 from fastapi import HTTPException, Depends
 from models.user import UserDBModel
-from lib.security.encryption.misc import symmetric
+from lib.security.encryption.fernet.core import encrypt as fernet_encrypt, decrypt as fernet_decrypt
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/api/v1/auth/login')
@@ -19,7 +19,7 @@ async def authenticate_client(username: str, password: bytes):
         return None
 
     if not user['password_sent']:
-        decrypted_stored_password = symmetric.decrypt(
+        decrypted_stored_password = fernet_decrypt(
             [settings.master_encryption_key, ], user['password'].encode())
         if str(password.hex()) == str(decrypted_stored_password.hex()):
             return user
@@ -40,9 +40,8 @@ async def get_logged_in_user(token: str = Depends(oauth2_scheme)):
         headers={"WWW-Authenticate": "Bearer"},
     )
 
-    decrypted_token = symmetric.decrypt(
+    decrypted_token = fernet_decrypt(
         [settings.master_encryption_key, ], token=token.encode()).decode()
-    # decrypted_token = token
 
     try:
         payload = jwt.decode(decrypted_token, settings.secret_key,
@@ -97,7 +96,7 @@ async def get_exchange_keys_raw(logged_in_user:  Union[None, UserDBModel], stric
     user_rsa_session = await db.key_exchange_sessions.find_one({"client_id": user_id})
 
     if not user_rsa_session and strict:
-        # print("NO ECDH SESSION")
+
         raise HTTPException(
             status_code=404, detail='No RSA key exchange session  found')
 
@@ -106,13 +105,13 @@ async def get_exchange_keys_raw(logged_in_user:  Union[None, UserDBModel], stric
     decrypted_public_key = None
 
     if strict:
-        decrypted_peer_public_key = symmetric.decrypt(
+        decrypted_peer_public_key = fernet_decrypt(
             [settings.master_encryption_key, ], user_rsa_session['peer_public_key'].encode())
 
-    decrypted_private_key = symmetric.decrypt(
+    decrypted_private_key = fernet_decrypt(
         [settings.master_encryption_key, ], server_rsa['encrypted_private'].encode())
 
-    decrypted_public_key = symmetric.decrypt(
+    decrypted_public_key = fernet_decrypt(
         [settings.master_encryption_key, ], server_rsa['encrypted_public'].encode())
 
     return {

@@ -8,14 +8,14 @@ from requests import request
 from fastapi import HTTPException
 
 ETHEREUM_DERIVATION_PATH = "m/44'/60'/0'/0/0"
-NETWORK_ID = 1
+NETWORK_ID = 3
 
 
 def create_http_web3(url) -> Web3:
     return Web3(Web3.HTTPProvider(url))
 
 
-def generate_ethereum_wallet(passphrase, username=None):
+def generate_ropsten_wallet(passphrase, username=None):
     if not passphrase:
         raise ValueError("Passphrase argument is required!")
 
@@ -94,13 +94,13 @@ def is_valid_address(address: str):
     return web3.isChecksumAddress(address)
 
 
-def send_ethereum_transaction(tx: Dict, passphrase: str) -> Dict:
+def send_ropsten_transaction(tx: Dict, passphrase: str) -> Dict:
     if not passphrase:
         raise ValueError("Passphrase argument is required!")
 
     gas_metrics = fetch_gas_oracle()
 
-    account = generate_ethereum_wallet(passphrase=passphrase)
+    account = generate_ropsten_wallet(passphrase=passphrase)
 
     from_address = tx['from_address']
     to_address = tx['to_address']

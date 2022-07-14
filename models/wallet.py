@@ -106,6 +106,7 @@ class CoinWalletModel(BaseModel):
     network_id: Union[int, None] = Field(alias='networkId', gt=0, default=None)
     ownerId: str = Field(min_length=32)
     address: str = Field(min_length=32)
+    is_testnet : bool = Field(default= False)
 
     def is_owner(self, identifier):
         return self.ownerId == identifier
