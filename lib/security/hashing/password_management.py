@@ -20,8 +20,12 @@ def hash_with_scrypt(salt: bytes, data: bytes) -> bytes:
     return kdf.derive(data)
 
 
+def generate_random_chars(n: int = 64 ) -> str:
+    return str((os.urandom(n)).hex())
+
+
 def generate_password() -> str:
-    return str((os.urandom(32)).hex())
+    return generate_random_chars(32)
 
 
 def verify_hash_with_scrypt(salt: bytes, key: bytes, data: bytes):

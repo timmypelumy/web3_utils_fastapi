@@ -14,10 +14,15 @@ class AppSettings(BaseSettings):
     etherscan_key: str = 'XNSZYWDMS3126XC8BKSTIYKDIUNFR2VECM'
     bsccan_key: str = ''
     celoscan_key: str = ''
+    ipfs_read_nodes: Dict = {
+        'cloudflare': ' https://cloudflare-ipfs.com/ipfs'
+    }
     secret_key: str = "@#$%^Ygtrdytfyiguo^Ou67798ouyxSD%IU7t65srdtuyiCXYTDFIUGOUC*^DDs57du6yiUSYDU"
     hash_algorithm: str = "HS256"
     access_token_expiration_in_minutes: float = 60
     client_url: str = 'http://localhost:3000'
+    filecoin_node_url: str = 'https://2CAP8OkeTVTPaSV4cYipKHYHDZO:3e25403be4e9904c61bf62bea62e9a78@filecoin.infura.io'
+    ipfs_node_url: str = 'https://ipfs.infura.io:5001'
     heroku_app_url: Union[str, None] = None
     chain_nodes: Dict[int, Dict[str, str]] = {
         42220: {

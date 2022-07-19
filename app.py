@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from routers import exchanges, users, wallets, security,  authentication, transactions
+from routers import exchanges, users, wallets, security,  authentication, transactions, files
 from fastapi.middleware.cors import CORSMiddleware
 from config import settings
 from typing import Dict
@@ -65,6 +65,12 @@ app.include_router(
     tags=['Exchange and Conversion']
 )
 
+
+app.include_router(
+    router=files.router,
+    prefix='/api/v1',
+    tags=['Static files']
+)
 
 app.include_router(
     router=security.router,

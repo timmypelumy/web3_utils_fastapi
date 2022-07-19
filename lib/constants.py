@@ -1,6 +1,13 @@
 from enum import Enum
 
 
+ALLOWED_IMAGE_EXTENSIONS = [
+    'png', 'jpeg', 'jpg', 'jfif', 'webp'
+]
+
+MAX_PROFILE_PHOTO_SIZE = 0.001 * 1024 * 1024
+
+
 class TransactionNetworks(str, Enum):
     bitcoin = 'bitcoin'
     litecoin = 'litecoin'
