@@ -9,7 +9,7 @@ autopep8==1.6.0
 base58==2.1.1
 based58==0.1.1
 bcrypt==3.2.2
-bitarray @ file:///C:/Users/thejoker/Desktop/beepo-server/bitarray-2.5.1-cp39-cp39-win_amd64.whl
+bitarray
 bitcoinlib==0.6.4
 cachetools==4.2.4
 certifi==2022.5.18.1
@@ -20,7 +20,7 @@ colorama==0.4.4
 construct==2.10.67
 construct-typing==0.5.2
 cryptography==37.0.2
-cytoolz @ file:///C:/Users/thejoker/Desktop/beepo-server/cytoolz-0.11.2-cp39-cp39-win_amd64.whl
+cytoolz
 dnspython==2.2.1
 ecdsa==0.17.0
 email-validator==1.2.1
@@ -41,13 +41,13 @@ httpcore==0.13.7
 httptools==0.4.0
 httpx==0.18.2
 idna==3.3
-ipfshttpclient==0.4.13.2
+ipfshttpclient==0.8.0a2
 itsdangerous==2.1.2
 Jinja2==3.1.2
 jsonrpcclient==4.0.2
 jsonrpcserver==5.0.7
 jsonschema==4.6.0
-lru-dict @ file:///C:/Users/thejoker/Desktop/beepo-server/lru_dict-1.1.7-cp39-cp39-win_amd64.whl
+lru-dict
 MarkupSafe==2.1.1
 motor==3.0.0
 multiaddr==0.0.9
