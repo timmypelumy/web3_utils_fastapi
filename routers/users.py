@@ -1,7 +1,6 @@
 from time import time
 from uuid import uuid4
 from fastapi import APIRouter,  HTTPException, BackgroundTasks, Depends, Query
-from pydantic import Field
 from models.user import RSAkeypairDBModel, UserInModel, UserOutModel, UserDBModel, WalletPhrase
 from models.wallet import CoinWalletModelDB
 from config import db, settings
@@ -17,7 +16,6 @@ from dependencies.security import get_exchange_keys_raw, get_logged_in_active_us
 from lib import constants
 from lib.security.encryption.rsa import core as core_rsa, keypair as keypair_rsa
 from lib.security.encryption.fernet.core import encrypt as fernet_encrypt, decrypt as fernet_decrypt
-from typing import List
 
 
 router = APIRouter(
@@ -321,6 +319,10 @@ async def create_user(userData: UserInModel, background_tasks: BackgroundTasks):
 
             return new_user
 
+        else:
+            raise HTTPException(
+                status_code=400, detail='Username exists already.')
+
 
 @router.get('/fetch-user', response_model=UserOutModel)
 async def fetch_user_by_user_identifier(user_identifier: str = Query(min_length=32, max_length=48)):
@@ -330,15 +332,6 @@ async def fetch_user_by_user_identifier(user_identifier: str = Query(min_length=
             status_code=404, detail='User with ID {0} does not exist'.format(user_identifier))
     else:
         return user
-
-
-@router.get('/fetch-wallets', response_model=List[CoinWalletModelDB], )
-async def fetch_user_wallets(logged_in_user: UserDBModel = Depends(get_logged_in_active_user)):
-
-    cursor = db.coin_wallets.find(
-        {'ownerId': logged_in_user.identifier}).sort('network_name', 1)
-    docs = await cursor.to_list(length=100)
-    return docs
 
 
 @router.post('/retreive-passphrase', response_model=WalletPhrase, description="Fetch user's account passphrase. ")

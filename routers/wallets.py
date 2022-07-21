@@ -1,11 +1,15 @@
 from typing import Dict, List
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Body
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Body, Depends
 from config import settings
 from web3 import Web3
 from time import sleep
 from models.wallet import FetchBalanceInputModel, FetchBalanceOutputModel
 from lib.wallets import celo_wallet, polygon_wallet, ethereum_wallet, bitcoin_wallet, litecoin_wallet, binance_wallet, ropsten_wallet, binance_testnet_wallet
 from lib import constants
+from models.wallet import CoinWalletModelDB
+from models.user import UserDBModel
+from dependencies.security import get_logged_in_active_user
+from config import db
 
 
 router = APIRouter(
@@ -14,6 +18,15 @@ router = APIRouter(
         404: {"description": "Resource does not exist"}
     }
 )
+
+
+@router.get('', response_model=List[CoinWalletModelDB], )
+async def fetch_user_wallets(logged_in_user: UserDBModel = Depends(get_logged_in_active_user)):
+
+    cursor = db.coin_wallets.find(
+        {'ownerId': logged_in_user.identifier}).sort('network_name', 1)
+    docs = await cursor.to_list(length=100)
+    return docs
 
 
 @router.post('/fetch-balance', response_model=FetchBalanceOutputModel, description='Fetch an address balance from the corresponding network, `networkName` can be celo, ethereum, binance, and so on.  ')
