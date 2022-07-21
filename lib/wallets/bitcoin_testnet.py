@@ -3,11 +3,11 @@ from bitcoinlib.services.services import Service
 from typing import Dict
 
 
-def generate_bitcoin_wallet(passphrase, username, raw=False):
+def generate_bitcoin_testnet_wallet(passphrase, username, raw=False):
     if not passphrase:
         raise ValueError("Passphrase argument is required!")
 
-    wallet = Wallet.create(username + 'bitcoin', network='bitcoin',
+    wallet = Wallet.create(username + 'bitcoin_testnet', network='testnet',
                            keys=passphrase, witness_type='segwit')
 
     if raw:
@@ -26,26 +26,26 @@ def generate_bitcoin_wallet(passphrase, username, raw=False):
         "address": address,
         'path': derivation_path,
         'balance': balance,
-        'name': username + 'bitcoin'
+        'name': username + 'bitcoin_testnet'
 
     }
 
     return account_info
 
 
-def send_bitcoin_transaction(tx: Dict, passphrase: str, username) -> Dict:
+def send_bitcoin_testnet_transaction(tx: Dict, passphrase: str, username) -> Dict:
     from_address = tx['from_address']
     to_address = tx['to_address']
     value = tx['value']
 
-    account = generate_bitcoin_wallet(passphrase, username)
+    account = generate_bitcoin_testnet_wallet(passphrase, username)
 
     w = Wallet(wallet=account['name'])
 
     main_output_utxo = (to_address, value)
 
     transaction = w.transaction_create(
-        output_arr=[main_output_utxo], account_id=0, network='bitcoin'
+        output_arr=[main_output_utxo], account_id=0, network='testnet'
     )
 
     print(transaction)
@@ -54,5 +54,5 @@ def send_bitcoin_transaction(tx: Dict, passphrase: str, username) -> Dict:
 
 
 def get_balance(address: str):
-    srv = Service(network='bitcoin', max_providers=3, min_providers=1)
+    srv = Service(network='testnet', max_providers=3, min_providers=1)
     return srv.getbalance(address)

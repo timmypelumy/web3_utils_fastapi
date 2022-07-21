@@ -1,5 +1,5 @@
 from lib import constants
-from lib.wallets import ethereum_wallet, binance_wallet, celo_wallet, bitcoin_wallet, polygon_wallet, litecoin_wallet, ropsten_wallet, binance_testnet_wallet
+from lib.wallets import ethereum_wallet, binance_wallet, celo_wallet, bitcoin_wallet, polygon_wallet, litecoin_wallet, ropsten_wallet, binance_testnet_wallet, polygon_mumbai_wallet
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from config import db
 from models.transactions import AuthorizeTransactionOutputModel, CreateTransactionInputModel, CreateTransactionOutputModel, TransactionInputModel, TransactionModel, AuthorizeTransactionInputModel
@@ -53,7 +53,7 @@ async def create_new_transaction(tx_data: CreateTransactionInputModel,  user: Us
 
     else:
 
-        raise HTTPException(status_code=400, detail='')
+        raise HTTPException(status_code=500, detail='')
 
 
 @router.post('/authorize', response_model=AuthorizeTransactionOutputModel)
@@ -98,9 +98,21 @@ async def authorize_transaction(tx_info:  AuthorizeTransactionInputModel,  backg
             task = ropsten_wallet.send_ropsten_transaction
         elif network == constants.TransactionNetworks.binance_testnet:
             task = binance_testnet_wallet.send_binance_testnet_transaction
+        elif network == constants.TransactionNetworks.binance:
+            task = binance_wallet.send_binance_transaction
+        elif network == constants.TransactionNetworks.polygon:
+            task = polygon_wallet.send_polygon_transaction
+        elif network == constants.TransactionNetworks.polygon_mumbai:
+            task = polygon_mumbai_wallet.send_polygon_mumbai_transaction
+        elif network == constants.TransactionNetworks.bitcoin:
+            task = bitcoin_wallet.send_bitcoin_transaction
 
         if task:
-            task_result = task(tx=tx, passphrase=decrypted_passphrase)
+            if network == constants.TransactionNetworks.bitcoin or network == constants.TransactionNetworks.litecoin:
+                task_result = task(
+                    tx=tx, passphrase=decrypted_passphrase, username=user.identifier)
+            else:
+                task_result = task(tx=tx, passphrase=decrypted_passphrase)
 
             background_tasks.add_task(initiate_transaction, tx_uid=uid,
                                       task=task_result['send_transaction'], raw_tx=task_result['raw_tx'])

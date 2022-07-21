@@ -7,8 +7,8 @@ from fastapi import HTTPException
 from .web3_utils import create_http_web3
 
 
-ETHEREUM_DERIVATION_PATH = "m/44'/60'/0'/0/0"
 NETWORK_ID = 1
+ETHEREUM_DERIVATION_PATH = "m/44'/60'/0'/{0}".format(NETWORK_ID)
 
 
 def generate_ethereum_wallet(passphrase, username=None):

@@ -135,7 +135,8 @@ def handshake(public_key: str = Body(), private_key: str = Body(), user_id: str 
 
         return {
             'password': reencrypted_password.hex(),
-            'user_id': user_id
+            'user_id': user_id,
+            'peer_public_key' : peer_public_key
         }
 
     else:
