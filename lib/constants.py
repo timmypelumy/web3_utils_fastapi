@@ -18,6 +18,7 @@ class TransactionNetworks(str, Enum):
     ropsten = 'ropsten'
     binance_testnet = 'binance_testnet'
     polygon_mumbai = 'polygon_mumbai'
+    bitcoin_testnet = 'bitcoin_testnet'
 
 
 class NetworkSubunits(str, Enum):
@@ -36,6 +37,7 @@ POLYGON_MAINNET = 'polygon'
 ROPSTEN_TESTNET = 'ropsten'
 BINANCE_TESTNET = 'binance_testnet'
 POLYGON_MUMBAI = 'polygon_mumbai'
+BITCOIN_TESTNET = 'bitcoin_testnet'
 
 
 VALID_NETWORKS = {
@@ -47,5 +49,6 @@ VALID_NETWORKS = {
     POLYGON_MAINNET,
     ROPSTEN_TESTNET,
     BINANCE_TESTNET,
-    POLYGON_MUMBAI
+    POLYGON_MUMBAI,
+    BITCOIN_TESTNET
 }

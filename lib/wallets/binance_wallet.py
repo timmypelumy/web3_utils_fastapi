@@ -5,7 +5,7 @@ from .ethereum_wallet import fetch_gas_oracle
 from .web3_utils import create_http_web3
 
 NETWORK_ID = 56
-BINANCE_DERIVATION_PATH = "m/44'/60'/0'/{0}".format(NETWORK_ID)
+BINANCE_DERIVATION_PATH = "m/44'/60'/0'/0'/{0}".format(NETWORK_ID)
 
 
 def generate_binance_wallet(passphrase, username=None):

@@ -27,7 +27,6 @@ def generate_bitcoin_testnet_wallet(passphrase, username, raw=False):
         'path': derivation_path,
         'balance': balance,
         'name': username + 'bitcoin_testnet'
-
     }
 
     return account_info

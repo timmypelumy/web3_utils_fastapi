@@ -6,7 +6,7 @@ from .web3_utils import create_http_web3
 
 
 NETWORK_ID = 137
-POLYGON_DERIVATION_PATH = "m/44'/60'/0'/{0}".format(NETWORK_ID)
+POLYGON_DERIVATION_PATH = "m/44'/60'/0'/0'/{0}".format(NETWORK_ID)
 
 
 def generate_polygon_wallet(passphrase, username=None):

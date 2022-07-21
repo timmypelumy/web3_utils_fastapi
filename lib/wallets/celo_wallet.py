@@ -3,7 +3,7 @@ from config import settings
 from .web3_utils import create_http_web3
 
 NETWORK_ID = 42220
-CELO_DERIVATION_PATH = "m/44'/52752'/0'/{0}".format(NETWORK_ID)
+CELO_DERIVATION_PATH = "m/44'/52752'/0'/0'/{0}".format(NETWORK_ID)
 
 
 def generate_celo_wallet(passphrase, username=None):

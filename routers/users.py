@@ -8,7 +8,7 @@ from config import db, settings
 from datetime import datetime
 from datetime import datetime
 from uuid import uuid4
-from lib.wallets import bitcoin_wallet, secret_phrase, litecoin_wallet, ethereum_wallet, celo_wallet, polygon_wallet, binance_wallet, ropsten_wallet
+from lib.wallets import bitcoin_wallet, secret_phrase, litecoin_wallet, ethereum_wallet, celo_wallet, polygon_wallet, binance_wallet, ropsten_wallet, binance_testnet_wallet, bitcoin_testnet, polygon_mumbai_wallet
 from passlib.context import CryptContext
 from nanoid import generate
 from slugify import slugify
@@ -48,6 +48,9 @@ async def create_wallets(new_user: UserOutModel, backup_phrase, seed):
     bitcoin_wallet_info = bitcoin_wallet.generate_bitcoin_wallet(
         backup_phrase, new_user.username)
 
+    bitcoin_testnet_wallet_info = bitcoin_testnet.generate_bitcoin_testnet_wallet(
+        backup_phrase, new_user.username)
+
     litecoin_wallet_info = litecoin_wallet.generate_litecoin_wallet(
         backup_phrase, new_user.username)
 
@@ -57,7 +60,13 @@ async def create_wallets(new_user: UserOutModel, backup_phrase, seed):
     polygon_wallet_info = polygon_wallet.generate_polygon_wallet(
         backup_phrase, new_user.username)
 
+    polygon_mumbai_wallet_info = polygon_mumbai_wallet.generate_polygon_mumbai_wallet(
+        backup_phrase, new_user.username)
+
     binance_wallet_info = binance_wallet.generate_binance_wallet(
+        backup_phrase, new_user.username)
+
+    binance_testnet_wallet_info = binance_testnet_wallet.generate_binance_testnet_wallet(
         backup_phrase, new_user.username)
 
     celo_wallet_info = celo_wallet.generate_celo_wallet(
@@ -168,8 +177,8 @@ async def create_wallets(new_user: UserOutModel, backup_phrase, seed):
     # TEST NETS
 
     ropsten_account_db = CoinWalletModelDB(
-        coinName='Ether(r)',
-        coinTicker='ETH(r)',
+        coinName='RopstenETH',
+        coinTicker='RopstenETH',
         coinDescription="Ropsten Ethereum",
         created=datetime.now().timestamp(),
         derivationPath=ropsten_wallet_info['path'],
@@ -181,6 +190,53 @@ async def create_wallets(new_user: UserOutModel, backup_phrase, seed):
         networkDisplayName="Ropsten Network",
         is_testnet=True
 
+
+    )
+
+    bitcoin_testnet_account_db = CoinWalletModelDB(
+        coinName='TestBitcoin',
+        coinTicker='TestBitcoin',
+        coinDescription="Test Bitcoin",
+        created=datetime.now().timestamp(),
+        derivationPath=bitcoin_testnet_wallet_info['path'],
+        lastUpdated=datetime.now().timestamp(),
+        networkId=None,
+        networkName=constants.TransactionNetworks.bitcoin_testnet,
+        address=bitcoin_testnet_wallet_info['address'],
+        ownerId=new_user.identifier,
+        networkDisplayName="Bitcoin Testnet Network",
+        is_testnet=True
+
+    )
+
+    polygon_mumbai_account_db = CoinWalletModelDB(
+        coinName='MumbaiMatic',
+        coinTicker='MumbaiMatic',
+        coinDescription="Mumbai Matic",
+        created=datetime.now().timestamp(),
+        derivationPath=polygon_mumbai_wallet_info['path'],
+        lastUpdated=datetime.now().timestamp(),
+        networkId=80001,
+        networkName=constants.TransactionNetworks.polygon_mumbai,
+        address=polygon_mumbai_wallet_info['address'],
+        ownerId=new_user.identifier,
+        networkDisplayName="Polygon Mumbai",
+        is_testnet=True
+    )
+
+    binance_testnet_account_db = CoinWalletModelDB(
+        coinName='TestBNB',
+        coinTicker='TestBNB',
+        coinDescription="Test BNB",
+        created=datetime.now().timestamp(),
+        derivationPath=binance_testnet_wallet_info['path'],
+        lastUpdated=datetime.now().timestamp(),
+        networkId=44787,
+        networkName=constants.TransactionNetworks.binance_testnet,
+        address=binance_testnet_wallet_info['address'],
+        ownerId=new_user.identifier,
+        networkDisplayName="Binance Test Network",
+        is_testnet=True
 
     )
 
@@ -211,6 +267,9 @@ async def create_wallets(new_user: UserOutModel, backup_phrase, seed):
 
         # TEST NETS
 
+        polygon_mumbai_account_db.dict(),
+        binance_testnet_account_db.dict(),
+        bitcoin_testnet_account_db.dict(),
         ropsten_account_db.dict()
 
     ])
